@@ -1,0 +1,28 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+node_modules/
+.next/
+dist/
+build/
+*.log
+
+# Per-app runtime state
+apps/*/state/
+apps/*/logs/
+apps/*/secrets/
+
+# Env files (never commit)
+.env
+.env.local
+apps/*/.env
+apps/*/.env.local
+
+# Rendered launchd plists (the templates are committed, rendered output is not)
+infra/launchagents/*.plist
+!infra/launchagents/*.plist.template
+
+# Export artifacts
+human-between-export-*.tar.gz

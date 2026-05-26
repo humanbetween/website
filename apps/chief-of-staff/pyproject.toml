@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hb-chief-of-staff"
+version = "0.1.0"
+description = "Human Between Chief of Staff — generalist Telegram bot for HB ops (contacts, ad-hoc tasks, free-form chat)."
+requires-python = ">=3.11"
+dependencies = [
+    "hb-core",
+]
+
+[project.optional-dependencies]
+voice = ["openai>=1.40.0"]
+dev = ["pytest>=8.0"]
+
+[tool.setuptools.packages.find]
+include = ["chief*"]
