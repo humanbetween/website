@@ -26,3 +26,46 @@ infra/launchagents/*.plist
 
 # Export artifacts
 human-between-export-*.tar.gz
+
+# Hermes Agent home — runtime/secrets/state must never be committed
+hermes-home/.env
+hermes-home/.env.local
+hermes-home/.hermes_history
+hermes-home/.restart_last_processed.json
+hermes-home/.skills_prompt_snapshot.json
+hermes-home/.update_check
+hermes-home/audio_cache/
+hermes-home/auth.json
+hermes-home/auth.lock
+hermes-home/cache/
+hermes-home/channel_directory.json
+hermes-home/checkpoints/
+hermes-home/cron/*
+!hermes-home/cron/.gitkeep
+hermes-home/gateway_state.json
+hermes-home/gateway.lock
+hermes-home/gateway.pid
+hermes-home/google_client_secret.json
+hermes-home/google_token.json
+hermes-home/image_cache/
+hermes-home/interrupt_debug.log
+hermes-home/kanban.db
+hermes-home/logs/*
+!hermes-home/logs/.gitkeep
+hermes-home/models_dev_cache.json
+hermes-home/pairing/
+hermes-home/pastes/
+hermes-home/processes.json
+hermes-home/profiles/*
+!hermes-home/profiles/.gitkeep
+hermes-home/sandboxes/
+hermes-home/sessions/
+hermes-home/state.db
+hermes-home/state.db-shm
+hermes-home/state.db-wal
+hermes-home/skills/.bundled_manifest
+hermes-home/skills/.curator_backups/
+hermes-home/skills/.curator_state
+hermes-home/skills/.hub/
+hermes-home/skills/.usage.json
+hermes-home/config.yaml.bak.*

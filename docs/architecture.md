@@ -13,12 +13,18 @@
 ```
 human-between/                 ← apps monorepo (this repo)
 ├── apps/
-│   └── chief-of-staff/        ← Telegram generalist bot (Phase 1)
+│   └── chief-of-staff/        ← custom Python Telegram bot (lightweight scaffold)
 │   ├── sales-bot/             ← future: HB.com prospect relances
 │   ├── ops-bot/               ← future: HB.com / .ai operations
 │   └── dashboard-web/         ← future: HB.com internal dashboard (Next.js)
+├── hermes-home/               ← Hermes Agent HERMES_HOME for HB (2nd instance)
+│   ├── config.yaml            ← framework defaults (no secrets)
+│   ├── SOUL.md                ← HB persona
+│   ├── skills/                ← full Hermes Agent skill library
+│   ├── memories/              ← MEMORY.md + USER.md (start blank)
+│   └── ...                    ← runtime state (gitignored)
 ├── infra/
-│   ├── launchagents/
+│   ├── launchagents/          ← com.humanbetween.{chief,hermes-agent}.plist.template
 │   └── scripts/
 └── docs/
 
@@ -26,6 +32,39 @@ human-between-core/            ← shared lib (separate repo)
 ├── python/  (hb_core)
 └── ts/      (@human-between/core)
 ```
+
+## The two bot tracks
+
+HB runs **two distinct agent codebases**, each with its own Telegram bot,
+its own scope, and its own daemon:
+
+### 1. Hermes Agent (`hermes-home/`) — generalist agent
+
+Same product as GN's Chief of Staff at `~/.hermes/`. Open-source framework
+(Hermes Agent by Nous Research, 1,400+ Python files) with full toolkit:
+web, github, email, voice, vision, MCP servers, skills, kanban, sessions,
+multi-channel (Telegram/Discord/Slack/WhatsApp/...). Used for **everything
+generalist**: ad-hoc tasks, research, captures, free-form chat with persistent
+memory.
+
+- HERMES_HOME : `~/Projects/human-between/hermes-home/`
+- Code (shared with GN's instance) : `~/.hermes/hermes-agent/`
+- Daemon : `com.humanbetween.hermes-agent` (launchd)
+- Memory : `hermes-home/memories/{MEMORY,USER}.md` (blank at start, agent
+  appends learnings over time)
+
+### 2. Custom Python bots (`apps/*`) — domain-specific workflows
+
+Lightweight bots built on `hb_core` for **workflows that need very strict
+validation discipline** (e.g. email drafts with 4-button approval). The
+`apps/chief-of-staff/` scaffold demonstrates the pattern; future
+`apps/sales-bot/` will handle HB.com prospect relances (HB equivalent of
+Hermès Sales).
+
+These are NOT a replacement for Hermes Agent — they coexist with it. Each
+addresses a different need : Hermes Agent for "agent with full toolkit and
+memory", custom bots for "tight loops with mandatory human-in-the-loop on
+each external write".
 
 ## How apps compose
 

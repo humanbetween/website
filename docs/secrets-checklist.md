@@ -61,6 +61,28 @@ Track status with `[ ]` / `[x]` as you go.
       `SUPABASE_SERVICE_ROLE_KEY`
 - [ ] **n8n** — self-hosted or cloud workspace (if orchestrating outbound)
 
+### Tier 1.5 — for the Hermes Agent instance (`hermes-home/`)
+
+Hermes Agent uses many of the same credentials as the custom bot. Copy these
+into `hermes-home/.env` (in addition to `apps/chief-of-staff/.env`):
+
+- `ANTHROPIC_API_KEY` (same value as Tier 1 #2)
+- `OPENAI_API_KEY` (Whisper STT + optional model provider)
+- `OPENAI_CODEX_API_KEY` (only if you use the Codex default in `config.yaml`)
+- `TELEGRAM_BOT_TOKEN` — **a SECOND HB bot from BotFather**, distinct from
+  the Chief of Staff Python bot's token. Hermes Agent and the custom bot
+  cannot share a Telegram token (only one polling client allowed per token).
+- `NOTION_API_KEY` (same as Tier 1 #6)
+- `OPENROUTER_API_KEY`, `GROQ_API_KEY`, etc. — optional fallback providers
+- `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET` (when Hermes needs
+  Gmail/Drive/Calendar access)
+
+So in total you'll create **two HB Telegram bots** via BotFather:
+1. `@hb_chief_*_bot` — custom Python Chief of Staff
+2. `@hb_hermes_*_bot` — Hermes Agent generalist
+
+Both connect to the same HB group (or separate groups — your choice).
+
 ## Verification after provisioning
 
 After filling `.env` files, run:

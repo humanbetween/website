@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.humanbetween.hermes-agent</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{HERMES_VENV_PYTHON}}</string>
+        <string>-m</string>
+        <string>hermes_cli.main</string>
+        <string>gateway</string>
+        <string>run</string>
+        <string>--replace</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>{{HERMES_AGENT_DIR}}</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>{{HERMES_VENV_DIR}}/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>VIRTUAL_ENV</key>
+        <string>{{HERMES_VENV_DIR}}</string>
+        <key>HERMES_HOME</key>
+        <string>{{HERMES_HOME_HB}}</string>
+        <key>LANG</key>
+        <string>en_US.UTF-8</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>{{HERMES_HOME_HB}}/logs/gateway.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>{{HERMES_HOME_HB}}/logs/gateway.error.log</string>
+</dict>
+</plist>
