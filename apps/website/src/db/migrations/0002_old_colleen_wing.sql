@@ -1,0 +1,2 @@
+CREATE INDEX "purchases_created_at" ON "purchases" USING btree ("created_at" DESC NULLS LAST);--> statement-breakpoint
+CREATE INDEX "users_created_at" ON "users" USING btree ("created_at" DESC NULLS LAST);

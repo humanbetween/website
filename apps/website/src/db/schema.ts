@@ -16,15 +16,19 @@ import {
 /*  BetterAuth core tables                                                    */
 /* -------------------------------------------------------------------------- */
 
-export const users = pgTable("users", {
-  id: text("id").primaryKey(),
-  name: text("name"),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("email_verified").notNull().default(false),
-  image: text("image"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: text("id").primaryKey(),
+    name: text("name"),
+    email: text("email").notNull().unique(),
+    emailVerified: boolean("email_verified").notNull().default(false),
+    image: text("image"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("users_created_at").on(t.createdAt.desc())],
+);
 
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
@@ -154,6 +158,7 @@ export const purchases = pgTable(
   },
   (t) => [
     index("purchases_user_id").on(t.userId),
+    index("purchases_created_at").on(t.createdAt.desc()),
     uniqueIndex("purchases_user_prompt_unique")
       .on(t.userId, t.promptId)
       .where(sql`${t.promptId} IS NOT NULL`),
