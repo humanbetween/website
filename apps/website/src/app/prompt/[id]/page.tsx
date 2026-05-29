@@ -9,7 +9,7 @@ import {
   getSimilarPrompts,
   incrementPopularity,
 } from "@/lib/prompts/queries";
-import { CATEGORY_LABELS, type Category, type PromptListItem } from "@/lib/prompts/types";
+import { CATEGORY_LABELS, type Category, rowToListItem } from "@/lib/prompts/types";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
 import { PromptCard } from "@/components/prompts/PromptCard";
 import { CopyPromptButton } from "./CopyPromptButton";
@@ -163,9 +163,9 @@ export default async function PromptDetailPage({
             <h2 className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-4">
               Similar prompts
             </h2>
-            <div className="columns-2 md:columns-4 gap-4 [&>*]:mb-4 [&>*]:break-inside-avoid">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {similar.map((s) => (
-                <PromptCard key={s.id} prompt={toListItem(s)} />
+                <PromptCard key={s.id} prompt={rowToListItem(s)} />
               ))}
             </div>
           </section>
@@ -175,34 +175,3 @@ export default async function PromptDetailPage({
   );
 }
 
-function toListItem(p: {
-  id: string;
-  title: string;
-  description: string;
-  videoUrl: string;
-  thumbnailUrl: string | null;
-  isFree: boolean;
-  priceCents: number;
-  categories: string[];
-  tags: string[];
-  tools: string[];
-  popularityCount: number;
-  createdAt: Date;
-  promptText: string;
-}): PromptListItem {
-  return {
-    id: p.id,
-    title: p.title,
-    description: p.description,
-    videoUrl: p.videoUrl,
-    thumbnailUrl: p.thumbnailUrl,
-    isFree: p.isFree,
-    priceCents: p.priceCents,
-    categories: p.categories as Category[],
-    tags: p.tags,
-    tools: p.tools,
-    popularityCount: p.popularityCount,
-    createdAt: p.createdAt.toISOString(),
-    promptText: p.isFree ? p.promptText : null,
-  };
-}

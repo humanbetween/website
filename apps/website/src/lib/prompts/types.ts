@@ -42,6 +42,40 @@ export type PromptDetail = PromptListItem & {
   canAccess: boolean;
 };
 
+export type PromptRow = {
+  id: string;
+  title: string;
+  description: string;
+  videoUrl: string;
+  thumbnailUrl: string | null;
+  isFree: boolean;
+  priceCents: number;
+  categories: string[];
+  tags: string[];
+  tools: string[];
+  popularityCount: number;
+  createdAt: Date;
+  promptText: string;
+};
+
+export function rowToListItem(p: PromptRow): PromptListItem {
+  return {
+    id: p.id,
+    title: p.title,
+    description: p.description,
+    videoUrl: p.videoUrl,
+    thumbnailUrl: p.thumbnailUrl,
+    isFree: p.isFree,
+    priceCents: p.priceCents,
+    categories: p.categories as Category[],
+    tags: p.tags,
+    tools: p.tools,
+    popularityCount: p.popularityCount,
+    createdAt: p.createdAt.toISOString(),
+    promptText: p.isFree ? p.promptText : null,
+  };
+}
+
 export type PromptListResponse = {
   items: PromptListItem[];
   nextCursor: string | null;

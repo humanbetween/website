@@ -6,6 +6,9 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { PromptCard } from "./PromptCard";
 import type { PromptListResponse } from "@/lib/prompts/types";
 
+const GRID_CLASSES =
+  "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5";
+
 async function fetchPage({
   pageParam,
   query,
@@ -22,12 +25,13 @@ async function fetchPage({
 
 export function PromptGrid() {
   const params = useSearchParams();
-  const cat = params.get("cat") ?? "";
-  const free = params.get("free") ?? "";
-  const sort = params.get("sort") ?? "";
-  const q = params.get("q") ?? "";
   const query = new URLSearchParams(
-    Object.entries({ cat, free, sort, q }).filter(([, v]) => v),
+    Object.entries({
+      cat: params.get("cat") ?? "",
+      free: params.get("free") ?? "",
+      sort: params.get("sort") ?? "",
+      q: params.get("q") ?? "",
+    }).filter(([, v]) => v),
   ).toString();
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
@@ -78,14 +82,16 @@ export function PromptGrid() {
 
   return (
     <>
-      <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-5 [&>*]:mb-5 [&>*]:break-inside-avoid">
+      <div className={GRID_CLASSES}>
         {items.map((p) => (
           <PromptCard key={p.id} prompt={p} />
         ))}
       </div>
       <div ref={sentinelRef} className="h-12" />
       {isFetchingNextPage && (
-        <p className="text-center text-xs text-muted-foreground py-4">Loading more…</p>
+        <p className="text-center text-xs text-muted-foreground py-4">
+          Loading more…
+        </p>
       )}
     </>
   );
@@ -93,12 +99,11 @@ export function PromptGrid() {
 
 function GridSkeleton() {
   return (
-    <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-5 [&>*]:mb-5 [&>*]:break-inside-avoid">
+    <div className={GRID_CLASSES}>
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="rounded-2xl bg-card/40 border border-border/40 animate-pulse"
-          style={{ height: 200 + ((i * 37) % 180) }}
+          className="rounded-2xl bg-card/40 border border-border/40 animate-pulse aspect-[4/3]"
         />
       ))}
     </div>
