@@ -12,7 +12,7 @@ export default function HomePage() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl leading-[0.95] text-balance font-bold">
             Premium AI prompts.
             <br />
-            Copy, paste, ship.
+            <span className="font-medium">Copy, paste, ship.</span>
           </h1>
           <p className="mt-5 max-w-xl mx-auto text-base text-muted-foreground">
             A growing library of curated prompts for video, image and websites.
