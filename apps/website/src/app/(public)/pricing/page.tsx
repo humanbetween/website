@@ -3,6 +3,8 @@ import { getPricingBanner, getPricingPlans } from "@/lib/site-settings";
 import { PricingBanner } from "@/components/site/PricingBanner";
 import { PricingButtons } from "./PricingButtons";
 
+export const dynamic = "force-dynamic";
+
 const YEARLY_FEATURES: Array<{ label: string; included: boolean }> = [
   { label: "Unlimited access to the prompt library", included: true },
   { label: "Every new prompt as it lands", included: true },

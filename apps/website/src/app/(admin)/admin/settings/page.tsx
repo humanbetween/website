@@ -1,17 +1,19 @@
 import { headers } from "next/headers";
-import { User, Shield, Megaphone } from "lucide-react";
+import { User, Shield, Megaphone, DollarSign } from "lucide-react";
 import { auth } from "@/lib/auth";
-import { getPricingBanner } from "@/lib/site-settings";
+import { getPricingBanner, getPricingPlans } from "@/lib/site-settings";
 import { AdminPageHeader, AdminCard } from "@/components/admin/AdminShell";
 import { UpdatePasswordForm } from "./UpdatePasswordForm";
 import { BannerSettingsForm } from "./BannerSettingsForm";
+import { PlansSettingsForm } from "./PlansSettingsForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const [session, banner] = await Promise.all([
+  const [session, banner, plans] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
     getPricingBanner(),
+    getPricingPlans(),
   ]);
 
   return (
@@ -52,6 +54,18 @@ export default async function AdminSettingsPage() {
           </div>
         </AdminCard>
       </div>
+
+      <AdminCard className="mb-6">
+        <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2">
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-medium tracking-tight">
+            Pricing
+          </h2>
+        </div>
+        <div className="px-5 py-6">
+          <PlansSettingsForm initial={plans} />
+        </div>
+      </AdminCard>
 
       <AdminCard>
         <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2">
