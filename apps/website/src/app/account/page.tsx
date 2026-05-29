@@ -1,8 +1,11 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
+import { db, schema } from "@/lib/db";
 import { SignOutButton } from "./SignOutButton";
+import { ManageSubscriptionButton } from "./ManageSubscriptionButton";
 
 export default async function AccountPage() {
   const session = await auth.api.getSession({
@@ -12,6 +15,18 @@ export default async function AccountPage() {
   if (!session) {
     redirect("/auth/sign-in?redirect=/account");
   }
+
+  const profile = (
+    await db
+      .select()
+      .from(schema.profiles)
+      .where(eq(schema.profiles.userId, session.user.id))
+      .limit(1)
+      .catch(() => [])
+  )[0];
+
+  const subscribed = profile?.subscriptionStatus === "active";
+  const hasStripe = Boolean(profile?.stripeCustomerId);
 
   return (
     <div className="container mx-auto max-w-2xl px-6 py-20 flex flex-col gap-6">
@@ -36,15 +51,30 @@ export default async function AccountPage() {
         <h2 className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-4">
           Subscription
         </h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Stripe customer portal lands in Phase 5.
-        </p>
-        <Link
-          href="/pricing"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
-        >
-          See pricing
-        </Link>
+        <dl className="grid grid-cols-[120px_1fr] gap-y-2 text-sm mb-4">
+          <dt className="text-muted-foreground">Plan</dt>
+          <dd className="capitalize">{profile?.subscriptionTier ?? "free"}</dd>
+          <dt className="text-muted-foreground">Status</dt>
+          <dd
+            className={
+              subscribed
+                ? "text-foreground"
+                : "text-muted-foreground capitalize"
+            }
+          >
+            {profile?.subscriptionStatus ?? "inactive"}
+          </dd>
+        </dl>
+        {hasStripe ? (
+          <ManageSubscriptionButton />
+        ) : (
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
+          >
+            See pricing
+          </Link>
+        )}
       </section>
     </div>
   );

@@ -3,11 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Lock, ArrowLeft } from "lucide-react";
 import { auth } from "@/lib/auth";
-import { getPromptById, getSimilarPrompts } from "@/lib/prompts/queries";
+import { canAccessPrompt } from "@/lib/access";
+import {
+  getPromptById,
+  getSimilarPrompts,
+  incrementPopularity,
+} from "@/lib/prompts/queries";
 import { CATEGORY_LABELS, type Category, type PromptListItem } from "@/lib/prompts/types";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
 import { PromptCard } from "@/components/prompts/PromptCard";
 import { CopyPromptButton } from "./CopyPromptButton";
+import { UnlockButton } from "./UnlockButton";
 
 export default async function PromptDetailPage({
   params,
@@ -26,7 +32,11 @@ export default async function PromptDetailPage({
   if (!prompt) notFound();
 
   const session = await auth.api.getSession({ headers: await headers() });
-  const canSee = prompt.isFree || Boolean(session?.user);
+  const allowed = await canAccessPrompt({
+    isFree: prompt.isFree,
+    promptId: prompt.id,
+    userId: session?.user.id ?? null,
+  }).catch(() => false);
 
   const similar = await getSimilarPrompts(prompt.id, prompt.categories).catch(() => []);
 
@@ -72,29 +82,38 @@ export default async function PromptDetailPage({
         </header>
 
         <section className="rounded-2xl border border-border/40 bg-card/40 p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 gap-3">
             <h2 className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
               Prompt
             </h2>
-            {canSee ? (
+            {allowed ? (
               <CopyPromptButton text={prompt.promptText} />
-            ) : (
+            ) : !session ? (
               <Link
                 href={`/auth/sign-in?redirect=/prompt/${prompt.id}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90"
               >
-                <Lock className="h-3 w-3" /> Sign in to view
+                <Lock className="h-3 w-3" /> Sign in to unlock
               </Link>
+            ) : (
+              <UnlockButton
+                promptId={prompt.id}
+                priceCents={prompt.priceCents}
+              />
             )}
           </div>
-          {canSee ? (
+          {allowed ? (
             <pre className="whitespace-pre-wrap text-sm text-foreground/90 font-mono">
               {prompt.promptText}
             </pre>
           ) : (
-            <div className="h-32 rounded-lg bg-background/40 border border-dashed border-border/60 flex items-center justify-center">
+            <div className="h-32 rounded-lg bg-background/40 border border-dashed border-border/60 flex items-center justify-center px-4 text-center">
               <p className="text-xs text-muted-foreground">
-                Sign in to view the prompt. Subscription gating arrives in Phase 5.
+                {!session
+                  ? "Sign in to view the prompt."
+                  : prompt.priceCents > 0
+                    ? `Unlock for $${(prompt.priceCents / 100).toFixed(2)} or go unlimited.`
+                    : "Go unlimited to view this prompt."}
               </p>
             </div>
           )}
@@ -146,10 +165,7 @@ export default async function PromptDetailPage({
             </h2>
             <div className="columns-2 md:columns-4 gap-4 [&>*]:mb-4 [&>*]:break-inside-avoid">
               {similar.map((s) => (
-                <PromptCard
-                  key={s.id}
-                  prompt={toListItem(s)}
-                />
+                <PromptCard key={s.id} prompt={toListItem(s)} />
               ))}
             </div>
           </section>
