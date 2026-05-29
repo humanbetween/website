@@ -8,6 +8,8 @@ import { DeletePromptButton } from "@/components/admin/DeletePromptButton";
 
 export const dynamic = "force-dynamic";
 
+const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif)(\?|$)/i;
+
 export default async function AdminPromptsPage() {
   await requireAdmin();
 
@@ -19,6 +21,8 @@ export default async function AdminPromptsPage() {
     isFree: boolean;
     popularityCount: number;
     createdAt: Date;
+    videoUrl: string;
+    thumbnailUrl: string | null;
   }> = [];
   try {
     rows = await db
@@ -30,6 +34,8 @@ export default async function AdminPromptsPage() {
         isFree: schema.prompts.isFree,
         popularityCount: schema.prompts.popularityCount,
         createdAt: schema.prompts.createdAt,
+        videoUrl: schema.prompts.videoUrl,
+        thumbnailUrl: schema.prompts.thumbnailUrl,
       })
       .from(schema.prompts)
       .where(isNull(schema.prompts.deletedAt))
@@ -59,6 +65,7 @@ export default async function AdminPromptsPage() {
         <table className="w-full text-sm">
           <thead className="text-xs text-muted-foreground bg-card/40">
             <tr>
+              <Th className="w-20" />
               <Th>Title</Th>
               <Th>Categories</Th>
               <Th className="text-right">Price</Th>
@@ -70,6 +77,9 @@ export default async function AdminPromptsPage() {
           <tbody>
             {rows.map((row) => (
               <tr key={row.id} className="border-t border-border/40 hover:bg-card/30">
+                <Td>
+                  <RowThumb src={row.videoUrl} poster={row.thumbnailUrl} alt={row.title} />
+                </Td>
                 <Td>{row.title}</Td>
                 <Td>
                   <span className="flex flex-wrap gap-1">
@@ -105,7 +115,7 @@ export default async function AdminPromptsPage() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <Td colSpan={6}>
+                <Td colSpan={7}>
                   <p className="text-center text-sm text-muted-foreground py-12">
                     No prompts yet. Create one to get started.
                   </p>
@@ -115,6 +125,46 @@ export default async function AdminPromptsPage() {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function RowThumb({
+  src,
+  poster,
+  alt,
+}: {
+  src: string;
+  poster: string | null;
+  alt: string;
+}) {
+  if (!src) {
+    return (
+      <div className="h-14 w-20 rounded-md bg-card border border-border/40" />
+    );
+  }
+  const isImage = IMAGE_RE.test(src);
+  return (
+    <div className="relative h-14 w-20 rounded-md overflow-hidden bg-card border border-border/40">
+      {isImage ? (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : (
+        <video
+          src={src}
+          poster={poster ?? undefined}
+          muted
+          playsInline
+          preload="metadata"
+          aria-label={alt}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      )}
     </div>
   );
 }
