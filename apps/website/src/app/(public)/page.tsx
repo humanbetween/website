@@ -9,7 +9,7 @@ export default function HomePage() {
     <>
       <section className="relative overflow-hidden">
         <div className="container mx-auto max-w-4xl px-6 pt-16 md:pt-24 pb-10 text-center">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl leading-[0.95] text-balance font-medium">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl leading-[0.95] text-balance font-bold">
             Premium AI prompts.
             <br />
             Copy, paste, ship.
