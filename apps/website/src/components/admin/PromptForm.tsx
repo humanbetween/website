@@ -10,6 +10,7 @@ import {
   type PromptFormValues,
 } from "@/lib/prompts/schema";
 import { CATEGORIES, CATEGORY_LABELS, type Category } from "@/lib/prompts/types";
+import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
 
 type Props = {
   initial?: Partial<PromptFormValues> & { id?: string };
@@ -155,6 +156,18 @@ export function PromptForm({ initial, mode }: Props) {
           <p className="text-[11px] text-muted-foreground mt-1 truncate">
             {videoUrl}
           </p>
+        )}
+        {videoUrl && (
+          <div className="mt-3">
+            <AutoPlayMedia
+              key={videoUrl}
+              src={videoUrl}
+              alt="Preview"
+              aspectRatio="16 / 10"
+              className="rounded-xl border border-border/40"
+              sizes="(max-width: 640px) 100vw, 600px"
+            />
+          </div>
         )}
       </Field>
 
