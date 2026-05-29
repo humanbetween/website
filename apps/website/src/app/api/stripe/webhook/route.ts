@@ -56,7 +56,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     await db
       .update(schema.profiles)
       .set({
-        subscriptionTier: "monthly",
+        subscriptionTier: "yearly",
         subscriptionStatus: sub.status === "active" ? "active" : sub.status,
         stripeCustomerId: session.customer as string,
         subscriptionCurrentPeriodEnd: subPeriodEnd(sub),

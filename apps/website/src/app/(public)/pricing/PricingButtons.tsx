@@ -4,13 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
-export function PricingButtons({
-  tier,
-  highlight,
-}: {
-  tier: "monthly" | "lifetime";
+type Props = {
+  tier: "yearly" | "lifetime";
+  cta: string;
   highlight: boolean;
-}) {
+};
+
+export function PricingButtons({ tier, cta, highlight }: Props) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +55,7 @@ export function PricingButtons({
         }
       >
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-        {tier === "monthly" ? "Subscribe" : "Buy lifetime"}
+        {cta}
       </button>
       {error && (
         <p className="text-xs text-destructive bg-destructive/10 rounded-md px-3 py-2">

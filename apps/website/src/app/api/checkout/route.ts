@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 const bodySchema = z.discriminatedUnion("mode", [
   z.object({
     mode: z.literal("subscription"),
-    tier: z.enum(["monthly", "lifetime"]),
+    tier: z.enum(["yearly", "lifetime"]),
   }),
   z.object({
     mode: z.literal("one_time"),
@@ -56,8 +56,8 @@ export async function POST(request: Request) {
   try {
     if (parsed.data.mode === "subscription") {
       const priceId =
-        parsed.data.tier === "monthly"
-          ? stripeConfig.monthlyPriceId
+        parsed.data.tier === "yearly"
+          ? stripeConfig.yearlyPriceId
           : stripeConfig.lifetimePriceId;
       if (!priceId) {
         return NextResponse.json(

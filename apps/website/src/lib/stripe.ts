@@ -7,7 +7,8 @@ export const stripe = new Stripe(secret, {
 });
 
 export const stripeConfig = {
-  monthlyPriceId: process.env.STRIPE_PRICE_MONTHLY ?? "",
+  yearlyPriceId:
+    process.env.STRIPE_PRICE_YEARLY ?? process.env.STRIPE_PRICE_MONTHLY ?? "",
   lifetimePriceId: process.env.STRIPE_PRICE_LIFETIME ?? "",
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
 };

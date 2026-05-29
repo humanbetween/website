@@ -1,23 +1,28 @@
 import { headers } from "next/headers";
-import { User, Shield } from "lucide-react";
+import { User, Shield, Megaphone } from "lucide-react";
 import { auth } from "@/lib/auth";
+import { getPricingBanner } from "@/lib/site-settings";
 import { AdminPageHeader, AdminCard } from "@/components/admin/AdminShell";
 import { UpdatePasswordForm } from "./UpdatePasswordForm";
+import { BannerSettingsForm } from "./BannerSettingsForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const [session, banner] = await Promise.all([
+    auth.api.getSession({ headers: await headers() }),
+    getPricingBanner(),
+  ]);
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
       <AdminPageHeader
         eyebrow="System &amp; preferences"
         title="Global settings"
-        subtitle="Manage your admin account."
+        subtitle="Manage your admin account and what visitors see on /pricing."
       />
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 gap-6 mb-6">
         <AdminCard>
           <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
@@ -47,6 +52,18 @@ export default async function AdminSettingsPage() {
           </div>
         </AdminCard>
       </div>
+
+      <AdminCard>
+        <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2">
+          <Megaphone className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-medium tracking-tight">
+            Pricing page banner
+          </h2>
+        </div>
+        <div className="px-5 py-6">
+          <BannerSettingsForm initial={banner} />
+        </div>
+      </AdminCard>
     </div>
   );
 }
