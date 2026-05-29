@@ -39,12 +39,12 @@ export function PricingBanner({ banner }: { banner: PricingBanner }) {
   if (!banner.active) return null;
 
   return (
-    <div className="w-full bg-foreground text-background">
+    <div className="w-full bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 text-slate-900">
       <div className="container mx-auto max-w-7xl px-6 py-2.5 flex items-center justify-center gap-3 text-xs sm:text-sm flex-wrap text-center">
         <Clock className="h-3.5 w-3.5 shrink-0" />
         <span className="font-medium">{banner.text}</span>
         {(banner.originalCents !== null || banner.saleCents !== null) && (
-          <span className="opacity-80">—</span>
+          <span className="opacity-70">—</span>
         )}
         {banner.originalCents !== null && (
           <span className="opacity-60 line-through tabular-nums">
@@ -52,14 +52,14 @@ export function PricingBanner({ banner }: { banner: PricingBanner }) {
           </span>
         )}
         {banner.saleCents !== null && (
-          <span className="font-medium tabular-nums">
+          <span className="font-semibold tabular-nums">
             now ${(banner.saleCents / 100).toFixed(0)}
           </span>
         )}
         {countdown && countdown !== "ended" && (
           <>
-            <span className="opacity-80">—</span>
-            <span className="font-mono tabular-nums opacity-80">{countdown}</span>
+            <span className="opacity-70">—</span>
+            <span className="font-mono tabular-nums opacity-90">{countdown}</span>
           </>
         )}
       </div>

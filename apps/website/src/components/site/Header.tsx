@@ -13,10 +13,10 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-background/70 border-b border-border/50">
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 h-16 relative flex items-center justify-between gap-3">
         <Logo />
 
-        <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
+        <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-sm text-muted-foreground">
           <Link href="/" className="hover:text-foreground transition-colors">
             Library
           </Link>
@@ -35,12 +35,6 @@ export function Header() {
             <GraduationCap className="h-3.5 w-3.5" />
             Skool
           </a>
-          <Link
-            href="/auth/sign-in"
-            className="hidden sm:inline-flex px-4 py-2 rounded-full glass text-sm font-medium hover:bg-card/80 transition-colors"
-          >
-            Sign in
-          </Link>
           <Link
             href="/pricing"
             className="hidden sm:inline-flex px-4 py-2 rounded-full bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
@@ -76,13 +70,6 @@ export function Header() {
             >
               <GraduationCap className="h-4 w-4" /> Skool
             </a>
-            <Link
-              href="/auth/sign-in"
-              onClick={close}
-              className="px-3 py-3 rounded-lg hover:bg-foreground/5"
-            >
-              Sign in
-            </Link>
             <Link
               href="/pricing"
               onClick={close}
