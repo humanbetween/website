@@ -33,6 +33,13 @@ export type PromptListItem = {
   tools: string[];
   popularityCount: number;
   createdAt: string;
+  // Only sent when is_free === true. For paid prompts, fetched on demand
+  // by the dialog through /api/prompts/[id], which applies access gating.
+  promptText: string | null;
+};
+
+export type PromptDetail = PromptListItem & {
+  canAccess: boolean;
 };
 
 export type PromptListResponse = {

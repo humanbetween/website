@@ -188,6 +188,7 @@ function toListItem(p: {
   tools: string[];
   popularityCount: number;
   createdAt: Date;
+  promptText: string;
 }): PromptListItem {
   return {
     id: p.id,
@@ -202,5 +203,6 @@ function toListItem(p: {
     tools: p.tools,
     popularityCount: p.popularityCount,
     createdAt: p.createdAt.toISOString(),
+    promptText: p.isFree ? p.promptText : null,
   };
 }

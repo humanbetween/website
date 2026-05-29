@@ -111,6 +111,7 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     tools: r.tools,
     popularityCount: r.popularityCount,
     createdAt: r.createdAt.toISOString(),
+    promptText: r.isFree ? r.promptText : null,
   }));
 
   return { items, nextCursor };
