@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Montserrat } from "next/font/google";
-import { Header } from "@/components/site/Header";
-import { Footer } from "@/components/site/Footer";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -44,12 +42,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${montserrat.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        <Providers>
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </Providers>
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
