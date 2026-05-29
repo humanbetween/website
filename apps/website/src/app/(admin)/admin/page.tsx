@@ -1,4 +1,3 @@
-import { headers } from "next/headers";
 import Link from "next/link";
 import {
   DollarSign,
@@ -9,7 +8,6 @@ import {
   ShoppingBag,
   UserPlus,
 } from "lucide-react";
-import { auth } from "@/lib/auth";
 import {
   fetchOverviewKpis,
   fetchRecentPurchases,
@@ -26,9 +24,6 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboardPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  const firstName = session?.user.name?.split(" ")[0] ?? "there";
-
   const [kpis, purchases, signups] = await Promise.all([
     fetchOverviewKpis(),
     fetchRecentPurchases(5),
@@ -39,7 +34,7 @@ export default async function AdminDashboardPage() {
     <div className="max-w-7xl mx-auto px-6 py-10">
       <AdminPageHeader
         eyebrow="Dashboard overview"
-        title={`Welcome back, ${firstName}.`}
+        title="Welcome back, Boss."
         subtitle="Here's what's happening with Human Between today."
       />
 

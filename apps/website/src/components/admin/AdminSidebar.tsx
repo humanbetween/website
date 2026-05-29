@@ -12,6 +12,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { Logo } from "@/components/site/Logo";
 
 type NavItem = {
   href: string;
@@ -72,10 +73,7 @@ export function AdminSidebar() {
   return (
     <aside className="hidden md:flex w-56 shrink-0 border-r border-border/40 bg-card/30 flex-col h-screen sticky top-0">
       <div className="h-16 flex items-center px-5 border-b border-border/40">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium">
-          <span aria-hidden className="inline-block h-6 w-6 rounded-full bg-foreground" />
-          <span className="tracking-tight">human between</span>
-        </Link>
+        <Logo variant="full" />
       </div>
 
       <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">
