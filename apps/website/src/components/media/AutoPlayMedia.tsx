@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef } from "react";
-import Image from "next/image";
 import { useLazyAutoplay } from "@/lib/lazy-autoplay";
 
 const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif)(\?|$)/i;
@@ -21,7 +20,6 @@ export function AutoPlayMedia({
   alt,
   aspectRatio,
   className,
-  sizes,
 }: AutoPlayMediaProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isImage = IMAGE_RE.test(src);
@@ -38,18 +36,16 @@ export function AutoPlayMedia({
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden bg-card ${className ?? ""}`}
+      className={`relative w-full overflow-hidden bg-card ${className ?? ""}`}
       style={aspectRatio ? { aspectRatio } : undefined}
     >
       {isImage ? (
-        <Image
+        <img
           src={src}
           alt={alt}
-          fill
-          sizes={
-            sizes ?? "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          }
-          className="object-cover"
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
         />
       ) : (
         <video
