@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, inArray, isNull, sum } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, inArray, isNull, or, sum } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 
 const since = (days: number) => {
@@ -98,11 +98,17 @@ export async function fetchOrders({
 }) {
   const wheres = [gte(schema.purchases.createdAt, since(range))];
   if (search) {
-    // Postgres ILIKE on email or prompt title
-    // We rely on the LEFT JOINs being already applied via the query builder below.
+    const term = `%${search}%`;
+    wheres.push(
+      or(
+        ilike(schema.users.email, term),
+        ilike(schema.users.name, term),
+        ilike(schema.prompts.title, term),
+      )!,
+    );
   }
 
-  const rows = await db
+  return db
     .select({
       id: schema.purchases.id,
       amountCents: schema.purchases.amountCents,
@@ -118,15 +124,6 @@ export async function fetchOrders({
     .where(and(...wheres))
     .orderBy(desc(schema.purchases.createdAt))
     .limit(200);
-
-  if (!search) return rows;
-  const term = search.toLowerCase();
-  return rows.filter(
-    (r) =>
-      r.userEmail?.toLowerCase().includes(term) ||
-      r.userName?.toLowerCase().includes(term) ||
-      r.promptTitle?.toLowerCase().includes(term),
-  );
 }
 
 export async function fetchCustomersKpis() {
@@ -155,7 +152,16 @@ export async function fetchCustomersKpis() {
 }
 
 export async function fetchCustomers(search?: string | null) {
-  const rows = await db
+  const wheres = search
+    ? [
+        or(
+          ilike(schema.users.email, `%${search}%`),
+          ilike(schema.users.name, `%${search}%`),
+        )!,
+      ]
+    : [];
+
+  const filtered = await db
     .select({
       id: schema.users.id,
       email: schema.users.email,
@@ -166,16 +172,9 @@ export async function fetchCustomers(search?: string | null) {
     })
     .from(schema.users)
     .leftJoin(schema.profiles, eq(schema.profiles.userId, schema.users.id))
+    .where(wheres.length > 0 ? and(...wheres) : undefined)
     .orderBy(desc(schema.users.createdAt))
     .limit(500);
-
-  const filtered = search
-    ? rows.filter(
-        (r) =>
-          r.email.toLowerCase().includes(search.toLowerCase()) ||
-          r.name?.toLowerCase().includes(search.toLowerCase()),
-      )
-    : rows;
 
   if (filtered.length === 0) return [];
 

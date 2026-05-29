@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { requireAdmin } from "@/lib/admin";
 import { getPromptById } from "@/lib/prompts/queries";
 import { PromptForm } from "@/components/admin/PromptForm";
+import { AdminPageHeader } from "@/components/admin/AdminShell";
 import type { Category } from "@/lib/prompts/types";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,6 @@ export default async function EditPromptPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
   const { id } = await params;
 
   let prompt;
@@ -24,11 +23,12 @@ export default async function EditPromptPage({
   if (!prompt) notFound();
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 sm:px-6 py-10">
-      <h1 className="text-2xl font-medium mb-2">Edit prompt</h1>
-      <p className="text-sm text-muted-foreground mb-8">
-        Changes go live as soon as you save.
-      </p>
+    <div className="max-w-3xl mx-auto px-6 py-10">
+      <AdminPageHeader
+        eyebrow="Content"
+        title="Edit prompt"
+        subtitle="Changes go live as soon as you save."
+      />
       <PromptForm
         mode="edit"
         initial={{
