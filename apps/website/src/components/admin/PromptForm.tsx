@@ -1,15 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Upload, X, Plus, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   promptFormSchema,
   type PromptFormValues,
 } from "@/lib/prompts/schema";
-import { CATEGORIES, CATEGORY_LABELS, type Category } from "@/lib/prompts/types";
+import {
+  DEFAULT_CATEGORIES,
+  type PromptCategory,
+} from "@/lib/prompts/types";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
 
 type Props = {
@@ -18,6 +22,56 @@ type Props = {
 };
 
 export function PromptForm({ initial, mode }: Props) {
+  const [availableCategories, setAvailableCategories] = useState<PromptCategory[]>(
+    () => [...DEFAULT_CATEGORIES],
+  );
+  const [addingCategory, setAddingCategory] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/categories")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { categories?: PromptCategory[] } | null) => {
+        if (active && data?.categories) setAvailableCategories(data.categories);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function addCategoryInline(
+    currentSelection: string[],
+    onChange: (next: string[]) => void,
+  ) {
+    const label = window.prompt("New category name");
+    if (!label || !label.trim()) return;
+    setAddingCategory(true);
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label: label.trim() }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? "Add failed");
+      }
+      const data = (await res.json()) as { categories: PromptCategory[] };
+      setAvailableCategories(data.categories);
+      // auto-select the newly added category
+      const added = data.categories.find(
+        (c) => !availableCategories.some((existing) => existing.key === c.key),
+      );
+      if (added) onChange([...currentSelection, added.key]);
+      toast.success(`Added category "${label.trim()}"`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Add failed");
+    } finally {
+      setAddingCategory(false);
+    }
+  }
+
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -214,15 +268,17 @@ export function PromptForm({ initial, mode }: Props) {
           name="categories"
           render={({ field }) => (
             <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((c) => {
-                const on = field.value.includes(c);
+              {availableCategories.map((c) => {
+                const on = field.value.includes(c.key);
                 return (
                   <button
-                    key={c}
+                    key={c.key}
                     type="button"
                     onClick={() =>
                       field.onChange(
-                        on ? field.value.filter((x: Category) => x !== c) : [...field.value, c],
+                        on
+                          ? field.value.filter((x: string) => x !== c.key)
+                          : [...field.value, c.key],
                       )
                     }
                     className={
@@ -231,10 +287,23 @@ export function PromptForm({ initial, mode }: Props) {
                         : "px-3 py-1.5 rounded-full text-xs bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground"
                     }
                   >
-                    {CATEGORY_LABELS[c]}
+                    {c.label}
                   </button>
                 );
               })}
+              <button
+                type="button"
+                onClick={() => addCategoryInline(field.value, field.onChange)}
+                disabled={addingCategory}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs bg-card/40 border border-dashed border-border/60 text-muted-foreground hover:text-foreground hover:border-border disabled:opacity-50"
+              >
+                {addingCategory ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Plus className="h-3 w-3" />
+                )}
+                Add new
+              </button>
             </div>
           )}
         />

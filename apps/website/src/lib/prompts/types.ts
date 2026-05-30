@@ -1,22 +1,38 @@
-export const CATEGORIES = [
-  "IMAGE",
-  "VIDEO",
-  "WEBSITE",
-  "BACKGROUND",
-  "TOOL",
-  "PRESENTATION",
+export type PromptCategory = {
+  key: string;
+  label: string;
+};
+
+export const DEFAULT_CATEGORIES: readonly PromptCategory[] = [
+  { key: "IMAGE", label: "Image" },
+  { key: "VIDEO", label: "Video" },
+  { key: "WEBSITE", label: "Website" },
+  { key: "SKILLS", label: "Skills" },
+  { key: "TOOL", label: "Tool" },
+  { key: "PRESENTATION", label: "Presentation" },
 ] as const;
 
-export type Category = (typeof CATEGORIES)[number];
+/**
+ * Default category keys. Use this when the live category list is not
+ * available (server-side fallback, type literals). For UI labelling
+ * always prefer `useCategories()` from CategoriesContext to support
+ * admin-added categories.
+ */
+export const DEFAULT_CATEGORY_KEYS = DEFAULT_CATEGORIES.map((c) => c.key);
 
-export const CATEGORY_LABELS: Record<Category, string> = {
-  IMAGE: "Image",
-  VIDEO: "Video",
-  WEBSITE: "Website",
-  BACKGROUND: "Background",
-  TOOL: "Tool",
-  PRESENTATION: "Presentation",
-};
+/**
+ * Loose type — categories are dynamic strings now. The DEFAULT_CATEGORY_KEYS
+ * are the canonical seeds but admins can add their own.
+ */
+export type Category = string;
+
+/**
+ * Static fallback label map for SSR / server components that can't access
+ * the dynamic context. Covers the defaults.
+ */
+export const CATEGORY_LABELS: Record<string, string> = Object.fromEntries(
+  DEFAULT_CATEGORIES.map((c) => [c.key, c.label]),
+);
 
 export type SortKey = "popular" | "recent";
 
@@ -67,7 +83,7 @@ export function rowToListItem(p: PromptRow): PromptListItem {
     thumbnailUrl: p.thumbnailUrl,
     isFree: p.isFree,
     priceCents: p.priceCents,
-    categories: p.categories as Category[],
+    categories: p.categories,
     tags: p.tags,
     tools: p.tools,
     popularityCount: p.popularityCount,

@@ -3,16 +3,16 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 import { Search } from "lucide-react";
-import { CATEGORIES, CATEGORY_LABELS, type Category, type SortKey } from "@/lib/prompts/types";
-
-const VISIBLE_CATEGORIES: Category[] = ["VIDEO", "IMAGE", "WEBSITE", "BACKGROUND", "PRESENTATION"];
+import type { SortKey } from "@/lib/prompts/types";
+import { useCategories } from "./CategoriesContext";
 
 export function PromptFilters() {
   const router = useRouter();
   const params = useSearchParams();
   const [, startTransition] = useTransition();
+  const categories = useCategories();
 
-  const activeCat = params.get("cat") as Category | null;
+  const activeCat = params.get("cat");
   const freeOnly = params.get("free") === "1";
   const sort = (params.get("sort") as SortKey) ?? "recent";
   const search = params.get("q") ?? "";
@@ -29,7 +29,7 @@ export function PromptFilters() {
     [params, router],
   );
 
-  function setCategory(cat: Category | null) {
+  function setCategory(cat: string | null) {
     push((sp) => {
       if (cat) sp.set("cat", cat);
       else sp.delete("cat");
@@ -65,14 +65,14 @@ export function PromptFilters() {
         >
           All
         </button>
-        {VISIBLE_CATEGORIES.map((c) => (
+        {categories.map((c) => (
           <button
-            key={c}
+            key={c.key}
             type="button"
-            onClick={() => setCategory(c === activeCat ? null : c)}
-            className={chip(c === activeCat)}
+            onClick={() => setCategory(c.key === activeCat ? null : c.key)}
+            className={chip(c.key === activeCat)}
           >
-            {CATEGORY_LABELS[c]}
+            {c.label}
           </button>
         ))}
 
@@ -121,5 +121,3 @@ function chip(active: boolean) {
     ? `${base} bg-foreground text-background border-foreground`
     : `${base} bg-card/40 text-muted-foreground border-border/60 hover:text-foreground hover:bg-card/80`;
 }
-
-export { CATEGORIES };

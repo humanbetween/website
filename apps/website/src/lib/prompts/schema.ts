@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { CATEGORIES } from "./types";
 
 export const assetSchema = z.object({
   name: z.string().min(1).max(200),
@@ -7,6 +6,12 @@ export const assetSchema = z.object({
   sizeBytes: z.number().int().min(0),
   type: z.string().max(80),
 });
+
+const categoryKey = z
+  .string()
+  .min(1)
+  .max(40)
+  .regex(/^[A-Z0-9_]+$/, "Category keys are UPPERCASE_WITH_UNDERSCORES only");
 
 export const promptFormSchema = z.object({
   title: z.string().min(1).max(200),
@@ -17,7 +22,7 @@ export const promptFormSchema = z.object({
   videoUrl: z.string().min(1),
   thumbnailUrl: z.string().nullable(),
   assets: z.array(assetSchema),
-  categories: z.array(z.enum(CATEGORIES)).min(1).max(6),
+  categories: z.array(categoryKey).min(1).max(10),
   tags: z.array(z.string().max(40)).max(20),
   tools: z.array(z.string().max(40)).max(20),
 });

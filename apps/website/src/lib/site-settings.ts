@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { DEFAULT_CATEGORIES, type PromptCategory } from "@/lib/prompts/types";
 
 export type PricingBanner = {
   active: boolean;
@@ -54,6 +55,73 @@ export const getPricingBanner = cache(async (): Promise<PricingBanner> => {
 export const getPricingPlans = cache(async (): Promise<PricingPlans> => {
   return getRaw<PricingPlans>("pricing_plans", DEFAULT_PLANS);
 });
+
+/**
+ * Returns the live prompt category list. Stored as `{ categories: [...] }`
+ * under key `prompt_categories`. When the row is missing or malformed,
+ * the default seed list is returned.
+ */
+export const getPromptCategories = cache(async (): Promise<PromptCategory[]> => {
+  try {
+    const rows = await db
+      .select()
+      .from(schema.siteSettings)
+      .where(eq(schema.siteSettings.key, "prompt_categories"))
+      .limit(1);
+    const value = rows[0]?.value as { categories?: PromptCategory[] } | undefined;
+    if (value?.categories && Array.isArray(value.categories) && value.categories.length > 0) {
+      return value.categories.filter(
+        (c) => typeof c.key === "string" && typeof c.label === "string",
+      );
+    }
+  } catch {
+    /* fall through to default */
+  }
+  return [...DEFAULT_CATEGORIES];
+});
+
+export async function addPromptCategory(label: string): Promise<PromptCategory[]> {
+  const trimmed = label.trim();
+  if (!trimmed) throw new Error("Label is required");
+  const current = await getPromptCategoriesUncached();
+  const key = labelToKey(trimmed, current.map((c) => c.key));
+  if (current.some((c) => c.key === key)) {
+    return current;
+  }
+  const next = [...current, { key, label: trimmed }];
+  await setSiteSetting("prompt_categories", { categories: next });
+  return next;
+}
+
+async function getPromptCategoriesUncached(): Promise<PromptCategory[]> {
+  try {
+    const rows = await db
+      .select()
+      .from(schema.siteSettings)
+      .where(eq(schema.siteSettings.key, "prompt_categories"))
+      .limit(1);
+    const value = rows[0]?.value as { categories?: PromptCategory[] } | undefined;
+    if (value?.categories && Array.isArray(value.categories) && value.categories.length > 0) {
+      return value.categories;
+    }
+  } catch {
+    /* fall through */
+  }
+  return [...DEFAULT_CATEGORIES];
+}
+
+function labelToKey(label: string, existing: string[]): string {
+  const base = label
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 40);
+  if (!base) return `CUSTOM_${Date.now()}`;
+  if (!existing.includes(base)) return base;
+  let i = 2;
+  while (existing.includes(`${base}_${i}`)) i += 1;
+  return `${base}_${i}`;
+}
 
 export async function setSiteSetting<T>(key: string, value: T) {
   await db

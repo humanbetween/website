@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
 import type { PromptDetail, PromptListItem } from "@/lib/prompts/types";
-import { CATEGORY_LABELS } from "@/lib/prompts/types";
+import { useCategoryLabel } from "./CategoriesContext";
 
 type Props = {
   prompt: PromptListItem;
@@ -60,6 +60,7 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
   const accessText = detail?.promptText ?? prompt.promptText;
   const showUnlockCta = detail !== null && !detail.canAccess && !accessText;
   const primaryCategory = prompt.categories[0];
+  const categoryLabel = useCategoryLabel(primaryCategory);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -70,7 +71,7 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
               {prompt.title}
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-              {primaryCategory ? CATEGORY_LABELS[primaryCategory] : "Prompt"}
+              {categoryLabel ?? "Prompt"}
             </DialogDescription>
           </div>
           <div className="flex items-center gap-2 shrink-0">

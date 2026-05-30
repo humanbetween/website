@@ -5,7 +5,7 @@ import { Lock, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
 import type { PromptListItem } from "@/lib/prompts/types";
-import { CATEGORY_LABELS } from "@/lib/prompts/types";
+import { useCategoryLabel } from "./CategoriesContext";
 
 const CARD_ASPECT = "4 / 3";
 
@@ -18,6 +18,7 @@ export function PromptCard({
 }) {
   const [copied, setCopied] = useState(false);
   const primaryCategory = prompt.categories[0];
+  const categoryLabel = useCategoryLabel(primaryCategory);
 
   async function onCardButtonClick(e: React.MouseEvent) {
     e.stopPropagation();
@@ -59,9 +60,9 @@ export function PromptCard({
           <h3 className="text-sm font-medium truncate leading-tight">
             {prompt.title}
           </h3>
-          {primaryCategory && (
+          {categoryLabel && (
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              {CATEGORY_LABELS[primaryCategory]}
+              {categoryLabel}
             </p>
           )}
         </div>
