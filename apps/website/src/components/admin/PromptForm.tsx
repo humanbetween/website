@@ -63,17 +63,24 @@ export function PromptForm({ initial, mode }: Props) {
         filename: file.name,
       }),
     });
-    if (!presignRes.ok) throw new Error("Could not get upload URL");
+    if (!presignRes.ok) {
+      const body = await presignRes.json().catch(() => ({}));
+      throw new Error(body.error ?? "Could not get upload URL");
+    }
     const presign = (await presignRes.json()) as {
+      method: "PUT";
       url: string;
-      fields: Record<string, string>;
       publicUrl: string;
+      contentType: string;
     };
-    const formData = new FormData();
-    for (const [k, v] of Object.entries(presign.fields)) formData.append(k, v);
-    formData.append("file", file);
-    const uploadRes = await fetch(presign.url, { method: "POST", body: formData });
-    if (!uploadRes.ok) throw new Error("Upload failed");
+    const uploadRes = await fetch(presign.url, {
+      method: "PUT",
+      headers: { "Content-Type": presign.contentType },
+      body: file,
+    });
+    if (!uploadRes.ok) {
+      throw new Error(`Upload failed (${uploadRes.status} ${uploadRes.statusText})`);
+    }
     return presign.publicUrl;
   }
 

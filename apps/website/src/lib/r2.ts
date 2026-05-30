@@ -1,5 +1,5 @@
-import { S3Client } from "@aws-sdk/client-s3";
-import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const accountId = process.env.R2_ACCOUNT_ID ?? "";
 const accessKeyId = process.env.R2_ACCESS_KEY_ID ?? "";
@@ -45,23 +45,28 @@ export async function makePresignedUpload({
   const key = `${prefix}/${id}-${safe}${ext}`;
 
   const maxBytes = kind === "video" ? 100 * 1024 * 1024 : 25 * 1024 * 1024;
+  if (size > maxBytes) {
+    throw new Error(
+      `File too large: ${size} bytes (max ${maxBytes} for ${kind})`,
+    );
+  }
 
-  const { url, fields } = await createPresignedPost(r2, {
-    Bucket: bucket,
-    Key: key,
-    Conditions: [
-      ["content-length-range", 0, maxBytes],
-      ["starts-with", "$Content-Type", contentType.split("/")[0] ?? ""],
-    ],
-    Fields: { "Content-Type": contentType },
-    Expires: 300,
-  });
+  const url = await getSignedUrl(
+    r2,
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ContentType: contentType,
+    }),
+    { expiresIn: 300 },
+  );
 
   return {
+    method: "PUT" as const,
     url,
-    fields,
     key,
     publicUrl: `${publicUrl}/${key}`,
+    contentType,
     maxBytes,
     size,
   };
