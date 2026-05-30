@@ -23,12 +23,13 @@ export function PromoSettingsForm({ initial }: Props) {
   async function onUpload(file: File) {
     setUploading(true);
     try {
+      const isVideo = file.type.startsWith("video/");
       const presignRes = await fetch("/api/admin/upload-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          kind: "asset",
-          contentType: file.type || "image/jpeg",
+          kind: isVideo ? "video" : "asset",
+          contentType: file.type || (isVideo ? "video/mp4" : "image/jpeg"),
           size: file.size,
           filename: file.name,
         }),
@@ -52,13 +53,16 @@ export function PromoSettingsForm({ initial }: Props) {
         throw new Error(`Upload failed (${uploadRes.status})`);
       }
       setImageUrl(presign.publicUrl);
-      toast.success("Image uploaded");
+      toast.success(`${isVideo ? "Video" : "Image"} uploaded`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
     }
   }
+
+  const isVideoUrl =
+    !!imageUrl && !/\.(jpe?g|png|webp|avif|gif)(\?|$)/i.test(imageUrl);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -125,11 +129,14 @@ export function PromoSettingsForm({ initial }: Props) {
         />
       </Field>
 
-      <Field label="Background image URL" hint="Upload to R2 or paste any public URL.">
+      <Field
+        label="Background media URL"
+        hint="Image or video. Upload to R2 or paste any public URL. Videos autoplay muted and loop in the card."
+      >
         <input
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="https://pub-…r2.dev/assets/…"
+          placeholder="https://pub-…r2.dev/videos/…"
           className={inputCls}
         />
         <div className="flex items-center gap-3 mt-2">
@@ -142,7 +149,7 @@ export function PromoSettingsForm({ initial }: Props) {
             {uploading ? "Uploading…" : "Upload to R2"}
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,video/mp4,video/webm,video/quicktime"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -150,13 +157,22 @@ export function PromoSettingsForm({ initial }: Props) {
               }}
             />
           </label>
-          {imageUrl && (
-            <img
-              src={imageUrl}
-              alt=""
-              className="h-10 w-16 object-cover rounded-md border border-border/40"
-            />
-          )}
+          {imageUrl &&
+            (isVideoUrl ? (
+              <video
+                src={imageUrl}
+                muted
+                playsInline
+                preload="metadata"
+                className="h-10 w-16 object-cover rounded-md border border-border/40"
+              />
+            ) : (
+              <img
+                src={imageUrl}
+                alt=""
+                className="h-10 w-16 object-cover rounded-md border border-border/40"
+              />
+            ))}
         </div>
       </Field>
 

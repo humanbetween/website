@@ -3,7 +3,11 @@
 import { ArrowRight } from "lucide-react";
 import type { PromoCard as PromoCardData } from "@/lib/site-settings";
 
+const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif)(\?|$)/i;
+
 export function PromoCard({ promo }: { promo: PromoCardData }) {
+  const isImage = !promo.imageUrl || IMAGE_RE.test(promo.imageUrl);
+
   return (
     <a
       href={promo.ctaUrl || "#"}
@@ -11,15 +15,26 @@ export function PromoCard({ promo }: { promo: PromoCardData }) {
       rel={promo.ctaUrl ? "noreferrer" : undefined}
       className="relative group flex flex-col justify-end rounded-2xl overflow-hidden bg-card/60 border border-border/40 hover:border-border transition-colors min-h-[260px] sm:col-span-2"
     >
-      {promo.imageUrl && (
-        <img
-          src={promo.imageUrl}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      )}
+      {promo.imageUrl &&
+        (isImage ? (
+          <img
+            src={promo.imageUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <video
+            src={promo.imageUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ))}
       <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/50 to-transparent" />
       <div className="relative px-5 py-6 sm:px-7 sm:py-7 flex flex-col gap-3">
         {promo.title && (
