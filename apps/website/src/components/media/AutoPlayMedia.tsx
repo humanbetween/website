@@ -12,6 +12,13 @@ export type AutoPlayMediaProps = {
   aspectRatio?: string;
   className?: string;
   sizes?: string;
+  /**
+   * When true, the media renders at its natural aspect ratio (block
+   * w-full h-auto) instead of being cropped to fill a fixed-ratio
+   * container. Use for places where the viewer should see the whole
+   * asset and scroll if needed.
+   */
+  natural?: boolean;
 };
 
 export function AutoPlayMedia({
@@ -20,6 +27,7 @@ export function AutoPlayMedia({
   alt,
   aspectRatio,
   className,
+  natural = false,
 }: AutoPlayMediaProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isImage = IMAGE_RE.test(src);
@@ -32,6 +40,37 @@ export function AutoPlayMedia({
       videoRef.current.pause();
     }
   });
+
+  if (natural) {
+    return (
+      <div
+        ref={containerRef}
+        className={`relative w-full bg-card ${className ?? ""}`}
+      >
+        {isImage ? (
+          <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+            className="block w-full h-auto"
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            src={src}
+            poster={poster ?? undefined}
+            muted
+            playsInline
+            loop
+            preload="metadata"
+            aria-label={alt}
+            className="block w-full h-auto"
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
