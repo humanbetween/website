@@ -36,7 +36,7 @@ export function PromptForm({ initial, mode }: Props) {
       title: initial?.title ?? "",
       description: initial?.description ?? "",
       promptText: initial?.promptText ?? "",
-      priceCents: initial?.priceCents ?? 500,
+      priceCents: 0,
       isFree: initial?.isFree ?? false,
       videoUrl: initial?.videoUrl ?? "",
       thumbnailUrl: initial?.thumbnailUrl ?? null,
@@ -196,24 +196,17 @@ export function PromptForm({ initial, mode }: Props) {
         />
       </Field>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Field label="Price (cents)" error={errors.priceCents?.message}>
-          <input
-            type="number"
-            min={0}
-            {...register("priceCents", { valueAsNumber: true })}
-            className={inputCls}
-          />
-        </Field>
-        <Field label="Free for everyone">
-          <label className="inline-flex items-center gap-2 text-sm">
-            <input type="checkbox" {...register("isFree")} className="h-4 w-4" />
-            <span className="text-muted-foreground">
-              Ignore price, unlock without subscription
-            </span>
-          </label>
-        </Field>
-      </div>
+      <Field
+        label="Free for everyone"
+        hint="When on, this prompt is accessible without an active subscription. Use for teasers."
+      >
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input type="checkbox" {...register("isFree")} className="h-4 w-4" />
+          <span className="text-muted-foreground">
+            Unlock without a subscription
+          </span>
+        </label>
+      </Field>
 
       <Field label="Categories" error={errors.categories?.message as string}>
         <Controller

@@ -3,12 +3,24 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PromptFilters } from "@/components/prompts/PromptFilters";
 import { PromptGrid } from "@/components/prompts/PromptGrid";
+import { PricingBanner } from "@/components/site/PricingBanner";
+import { getPricingBanner } from "@/lib/site-settings";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const banner = await getPricingBanner();
+
   return (
     <>
+      <PricingBanner banner={banner} />
+
       <section className="relative overflow-hidden">
-        <div className="container mx-auto max-w-4xl px-6 pt-16 md:pt-24 pb-10 text-center">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-sky-400/15 via-sky-400/5 to-transparent"
+        />
+        <div className="relative container mx-auto max-w-4xl px-6 pt-16 md:pt-24 pb-10 text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl leading-[0.95] text-balance font-bold">
             <span className="uppercase">Premium AI prompts.</span>
             <br />

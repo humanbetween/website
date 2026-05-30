@@ -9,9 +9,8 @@ import {
   getSimilarPrompts,
   incrementPopularity,
 } from "@/lib/prompts/queries";
-import { CATEGORY_LABELS, type Category, rowToListItem } from "@/lib/prompts/types";
+import { CATEGORY_LABELS, type Category } from "@/lib/prompts/types";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
-import { PromptCard } from "@/components/prompts/PromptCard";
 import { CopyPromptButton } from "./CopyPromptButton";
 import { UnlockButton } from "./UnlockButton";
 
@@ -96,10 +95,7 @@ export default async function PromptDetailPage({
                 <Lock className="h-3 w-3" /> Sign in to unlock
               </Link>
             ) : (
-              <UnlockButton
-                promptId={prompt.id}
-                priceCents={prompt.priceCents}
-              />
+              <UnlockButton />
             )}
           </div>
           {allowed ? (
@@ -111,9 +107,7 @@ export default async function PromptDetailPage({
               <p className="text-xs text-muted-foreground">
                 {!session
                   ? "Sign in to view the prompt."
-                  : prompt.priceCents > 0
-                    ? `Unlock for $${(prompt.priceCents / 100).toFixed(2)} or go unlimited.`
-                    : "Go unlimited to view this prompt."}
+                  : "Go unlimited to view this prompt."}
               </p>
             </div>
           )}
@@ -165,7 +159,28 @@ export default async function PromptDetailPage({
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {similar.map((s) => (
-                <PromptCard key={s.id} prompt={rowToListItem(s)} />
+                <Link
+                  key={s.id}
+                  href={`/prompt/${s.id}`}
+                  className="group flex flex-col rounded-2xl overflow-hidden bg-card/60 border border-border/40 hover:border-border hover:bg-card/90 transition-colors"
+                >
+                  <AutoPlayMedia
+                    src={s.videoUrl}
+                    poster={s.thumbnailUrl}
+                    alt={s.title}
+                    aspectRatio="4 / 3"
+                  />
+                  <div className="px-3 py-3">
+                    <h3 className="text-sm font-medium truncate leading-tight">
+                      {s.title}
+                    </h3>
+                    {s.categories[0] && (
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {CATEGORY_LABELS[s.categories[0] as Category] ?? s.categories[0]}
+                      </p>
+                    )}
+                  </div>
+                </Link>
               ))}
             </div>
           </section>

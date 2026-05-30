@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { PromptCard } from "./PromptCard";
+import { PromptDialog } from "./PromptDialog";
 import type { PromptListResponse } from "@/lib/prompts/types";
 
 const GRID_CLASSES =
@@ -42,6 +43,55 @@ export function PromptGrid() {
       getNextPageParam: (last) => last.nextCursor,
     });
 
+  const items = useMemo(
+    () => data?.pages.flatMap((p) => p.items) ?? [],
+    [data],
+  );
+
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const openAt = useCallback(
+    (index: number, promptId: string) => {
+      setOpenIndex(index);
+      fetch(`/api/prompts/${promptId}/click`, {
+        method: "POST",
+        keepalive: true,
+      }).catch(() => {});
+    },
+    [],
+  );
+
+  // Keyboard navigation while the dialog is open
+  useEffect(() => {
+    if (openIndex === null) return;
+    function onKey(e: KeyboardEvent) {
+      if (openIndex === null) return;
+      if (e.key === "ArrowLeft") {
+        if (openIndex > 0) {
+          e.preventDefault();
+          setOpenIndex(openIndex - 1);
+        }
+      } else if (e.key === "ArrowRight") {
+        if (openIndex < items.length - 1) {
+          e.preventDefault();
+          setOpenIndex(openIndex + 1);
+        } else if (hasNextPage && !isFetchingNextPage) {
+          e.preventDefault();
+          fetchNextPage();
+        }
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openIndex, items.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Reset openIndex if filters change and current index falls out of range
+  useEffect(() => {
+    if (openIndex !== null && openIndex >= items.length) {
+      setOpenIndex(null);
+    }
+  }, [items.length, openIndex]);
+
   const sentinelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const node = sentinelRef.current;
@@ -70,8 +120,6 @@ export function PromptGrid() {
     );
   }
 
-  const items = data?.pages.flatMap((p) => p.items) ?? [];
-
   if (items.length === 0) {
     return (
       <div className="rounded-xl border border-border/40 bg-card/40 p-12 text-center text-sm text-muted-foreground">
@@ -80,11 +128,13 @@ export function PromptGrid() {
     );
   }
 
+  const openPrompt = openIndex !== null ? items[openIndex] : null;
+
   return (
     <>
       <div className={GRID_CLASSES}>
-        {items.map((p) => (
-          <PromptCard key={p.id} prompt={p} />
+        {items.map((p, i) => (
+          <PromptCard key={p.id} prompt={p} onOpen={() => openAt(i, p.id)} />
         ))}
       </div>
       <div ref={sentinelRef} className="h-12" />
@@ -92,6 +142,15 @@ export function PromptGrid() {
         <p className="text-center text-xs text-muted-foreground py-4">
           Loading more…
         </p>
+      )}
+      {openPrompt && (
+        <PromptDialog
+          prompt={openPrompt}
+          open={openIndex !== null}
+          onOpenChange={(next) => {
+            if (!next) setOpenIndex(null);
+          }}
+        />
       )}
     </>
   );

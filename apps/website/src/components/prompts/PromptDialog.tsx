@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Copy, Check, ExternalLink, Lock } from "lucide-react";
+import { Copy, Check, Lock } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -22,26 +22,27 @@ type Props = {
 
 export function PromptDialog({ prompt, open, onOpenChange }: Props) {
   const [detail, setDetail] = useState<PromptDetail | null>(null);
-  const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Reset transient state whenever the open prompt changes
   useEffect(() => {
-    if (!open || detail || loading) return;
+    setDetail(null);
+    setCopied(false);
+  }, [prompt.id]);
+
+  useEffect(() => {
+    if (!open) return;
     let active = true;
-    setLoading(true);
     fetch(`/api/prompts/${prompt.id}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data: PromptDetail | null) => {
         if (active && data) setDetail(data);
       })
-      .catch(() => {})
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+      .catch(() => {});
     return () => {
       active = false;
     };
-  }, [open, prompt.id, detail, loading]);
+  }, [open, prompt.id]);
 
   async function onCopy() {
     const text = detail?.promptText ?? prompt.promptText;
@@ -73,25 +74,21 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
             </DialogDescription>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {accessText && (
-              <button
-                type="button"
-                onClick={onCopy}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors"
-              >
-                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                {copied ? "Copied" : "Copy prompt"}
-              </button>
-            )}
-            {showUnlockCta && <UnlockCta prompt={prompt} />}
-            <Link
-              href={`/prompt/${prompt.id}`}
-              onClick={() => onOpenChange(false)}
-              className="inline-flex items-center px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
-              aria-label="Open full page"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
+            {accessText ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onCopy}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? "Copied" : "Copy prompt"}
+                </button>
+                <UnlimitedPill />
+              </>
+            ) : showUnlockCta ? (
+              <PremiumPill />
+            ) : null}
           </div>
         </header>
 
@@ -153,24 +150,24 @@ function ChipGroup({
   );
 }
 
-function UnlockCta({ prompt }: { prompt: PromptListItem }) {
-  if (prompt.priceCents > 0) {
-    return (
-      <Link
-        href={`/prompt/${prompt.id}`}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90"
-      >
-        <Lock className="h-3.5 w-3.5" />
-        Unlock ${(prompt.priceCents / 100).toFixed(2)}
-      </Link>
-    );
-  }
+function PremiumPill() {
   return (
     <Link
       href="/pricing"
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground hover:bg-card/80 text-xs font-medium transition-colors"
     >
-      <Lock className="h-3.5 w-3.5" /> Go unlimited
+      <Lock className="h-3.5 w-3.5" /> Premium
+    </Link>
+  );
+}
+
+function UnlimitedPill() {
+  return (
+    <Link
+      href="/pricing"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground hover:bg-card/80 text-xs font-medium transition-colors"
+    >
+      Unlimited
     </Link>
   );
 }
