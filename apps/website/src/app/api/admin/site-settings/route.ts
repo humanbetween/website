@@ -28,7 +28,24 @@ const plansSchema = z.object({
   }),
 });
 
-const bodySchema = z.discriminatedUnion("key", [bannerSchema, plansSchema]);
+const promoSchema = z.object({
+  key: z.literal("promo_card"),
+  value: z.object({
+    active: z.boolean(),
+    title: z.string().max(120),
+    description: z.string().max(400),
+    imageUrl: z.string().max(500),
+    ctaLabel: z.string().max(40),
+    ctaUrl: z.string().max(500),
+    position: z.number().int().min(0).max(200),
+  }),
+});
+
+const bodySchema = z.discriminatedUnion("key", [
+  bannerSchema,
+  plansSchema,
+  promoSchema,
+]);
 
 export async function PUT(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });

@@ -4,12 +4,15 @@ import { ArrowRight } from "lucide-react";
 import { PromptFilters } from "@/components/prompts/PromptFilters";
 import { PromptGrid } from "@/components/prompts/PromptGrid";
 import { PricingBanner } from "@/components/site/PricingBanner";
-import { getPricingBanner } from "@/lib/site-settings";
+import { getPricingBanner, getPromoCard } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const banner = await getPricingBanner();
+  const [banner, promo] = await Promise.all([
+    getPricingBanner(),
+    getPromoCard(),
+  ]);
 
   return (
     <>
@@ -53,10 +56,10 @@ export default async function HomePage() {
 
       <section
         id="library"
-        className="container mx-auto max-w-7xl px-4 sm:px-6 pt-6 pb-20"
+        className="container mx-auto max-w-7xl px-5 sm:px-6 pt-6 pb-20"
       >
         <Suspense fallback={null}>
-          <PromptGrid />
+          <PromptGrid promo={promo} />
         </Suspense>
       </section>
     </>

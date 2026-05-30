@@ -1,11 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useSearchParams } from "next/navigation";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { PromptCard } from "./PromptCard";
 import { PromptDialog } from "./PromptDialog";
+import { PromoCard } from "./PromoCard";
 import type { PromptListResponse } from "@/lib/prompts/types";
+import type { PromoCard as PromoCardData } from "@/lib/site-settings";
 
 const GRID_CLASSES =
   "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5";
@@ -24,7 +33,7 @@ async function fetchPage({
   return res.json() as Promise<PromptListResponse>;
 }
 
-export function PromptGrid() {
+export function PromptGrid({ promo }: { promo?: PromoCardData }) {
   const params = useSearchParams();
   const query = new URLSearchParams(
     Object.entries({
@@ -129,13 +138,21 @@ export function PromptGrid() {
   }
 
   const openPrompt = openIndex !== null ? items[openIndex] : null;
+  const promoEnabled = !!(promo && promo.active);
+  const promoPos = promoEnabled
+    ? Math.min(Math.max(promo!.position ?? 8, 0), items.length)
+    : -1;
 
   return (
     <>
       <div className={GRID_CLASSES}>
         {items.map((p, i) => (
-          <PromptCard key={p.id} prompt={p} onOpen={() => openAt(i, p.id)} />
+          <Fragment key={p.id}>
+            {promoEnabled && i === promoPos && <PromoCard promo={promo!} />}
+            <PromptCard prompt={p} onOpen={() => openAt(i, p.id)} />
+          </Fragment>
         ))}
+        {promoEnabled && promoPos >= items.length && <PromoCard promo={promo!} />}
       </div>
       <div ref={sentinelRef} className="h-12" />
       {isFetchingNextPage && (

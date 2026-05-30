@@ -64,8 +64,8 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl p-0 bg-card border-border/60 [&>button]:hidden max-h-[90vh] flex flex-col gap-0">
-        <header className="shrink-0 flex items-start justify-between px-5 py-4 border-b border-border/40 gap-3">
+      <DialogContent className="max-w-[920px] p-0 overflow-hidden bg-card border-border/60 [&>button]:hidden">
+        <header className="flex items-start justify-between px-5 py-4 border-b border-border/40 gap-3">
           <div className="min-w-0">
             <DialogTitle className="text-base font-medium truncate">
               {prompt.title}
@@ -93,26 +93,24 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
           </div>
         </header>
 
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          <AutoPlayMedia
-            src={prompt.videoUrl}
-            poster={prompt.thumbnailUrl}
-            alt={prompt.title}
-            className="bg-background"
-            natural
-          />
+        <AutoPlayMedia
+          src={prompt.videoUrl}
+          poster={prompt.thumbnailUrl}
+          alt={prompt.title}
+          aspectRatio="16 / 10"
+          className="bg-background"
+        />
 
-          {(prompt.tools.length > 0 || prompt.tags.length > 0) && (
-            <div className="px-5 py-4 border-t border-border/40 grid sm:grid-cols-2 gap-4">
-              {prompt.tools.length > 0 && (
-                <ChipGroup title="Use with" items={prompt.tools} />
-              )}
-              {prompt.tags.length > 0 && (
-                <ChipGroup title="Best for" items={prompt.tags} prefix="#" muted />
-              )}
-            </div>
-          )}
-        </div>
+        {(prompt.tools.length > 0 || prompt.tags.length > 0) && (
+          <div className="px-5 py-4 border-t border-border/40 grid sm:grid-cols-2 gap-4">
+            {prompt.tools.length > 0 && (
+              <ChipGroup title="Use with" items={prompt.tools} />
+            )}
+            {prompt.tags.length > 0 && (
+              <ChipGroup title="Best for" items={prompt.tags} prefix="#" muted />
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

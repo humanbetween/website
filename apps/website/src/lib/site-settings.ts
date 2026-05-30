@@ -33,6 +33,27 @@ const DEFAULT_PLANS: PricingPlans = {
   lifetimeOriginalCents: null,
 };
 
+export type PromoCard = {
+  active: boolean;
+  title: string;
+  description: string;
+  imageUrl: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  /** Insert the card after this many items in the grid (0-indexed). */
+  position: number;
+};
+
+const DEFAULT_PROMO: PromoCard = {
+  active: false,
+  title: "",
+  description: "",
+  imageUrl: "",
+  ctaLabel: "Explore",
+  ctaUrl: "",
+  position: 8,
+};
+
 async function getRaw<T>(key: string, fallback: T): Promise<T> {
   try {
     const rows = await db
@@ -54,6 +75,10 @@ export const getPricingBanner = cache(async (): Promise<PricingBanner> => {
 
 export const getPricingPlans = cache(async (): Promise<PricingPlans> => {
   return getRaw<PricingPlans>("pricing_plans", DEFAULT_PLANS);
+});
+
+export const getPromoCard = cache(async (): Promise<PromoCard> => {
+  return getRaw<PromoCard>("promo_card", DEFAULT_PROMO);
 });
 
 /**

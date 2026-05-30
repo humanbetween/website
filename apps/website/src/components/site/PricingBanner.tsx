@@ -39,7 +39,7 @@ export function PricingBanner({ banner }: { banner: PricingBanner }) {
   if (!banner.active) return null;
 
   return (
-    <div className="w-full bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 text-white">
+    <div className="w-full bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 text-slate-900">
       <div className="container mx-auto max-w-7xl px-6 py-2.5 flex items-center justify-center gap-3 text-xs sm:text-sm flex-wrap text-center">
         <Clock className="h-3.5 w-3.5 shrink-0" />
         <span className="font-medium">{banner.text}</span>
