@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sendContactInquiryEmail } from "@/lib/resend";
+import { postContactInquiryToSlack } from "@/lib/slack";
 
 export const dynamic = "force-dynamic";
 
@@ -17,15 +18,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  try {
-    await sendContactInquiryEmail({
-      name: parsed.data.name.trim(),
-      email: parsed.data.email.trim(),
-      message: parsed.data.message.trim(),
-    });
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("contact inquiry failed", err);
+  const payload = {
+    name: parsed.data.name.trim(),
+    email: parsed.data.email.trim(),
+    message: parsed.data.message.trim(),
+  };
+
+  const [emailRes, slackRes] = await Promise.allSettled([
+    sendContactInquiryEmail(payload),
+    postContactInquiryToSlack(payload),
+  ]);
+
+  if (emailRes.status === "rejected") {
+    console.error("contact inquiry email failed", emailRes.reason);
+  }
+  if (slackRes.status === "rejected") {
+    console.error("contact inquiry slack failed", slackRes.reason);
+  }
+
+  if (emailRes.status === "rejected" && slackRes.status === "rejected") {
     return NextResponse.json({ error: "Send failed" }, { status: 500 });
   }
+
+  return NextResponse.json({ ok: true });
 }
