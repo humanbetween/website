@@ -56,7 +56,7 @@ export default async function HomePage() {
 
       <section
         id="library"
-        className="container mx-auto max-w-7xl px-5 sm:px-6 pt-6 pb-20"
+        className="container mx-auto max-w-7xl px-6 pt-6 pb-20"
       >
         <Suspense fallback={null}>
           <PromptGrid promo={promo} />
