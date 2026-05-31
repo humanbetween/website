@@ -9,7 +9,7 @@ import type { PromptListItem } from "@/lib/prompts/types";
 import { useCategoryLabel } from "./CategoriesContext";
 import { FavoriteButton } from "./FavoriteButton";
 
-const CARD_ASPECT = "1 / 1";
+const CARD_ASPECT = "4 / 3";
 
 export function PromptCard({
   prompt,
