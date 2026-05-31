@@ -73,6 +73,7 @@ const homeCtaSchema = z.object({
     ctaLabel: z.string().min(1).max(40),
     ctaUrl: z.string().min(1).max(500),
     imageUrl: z.string().max(500),
+    videoUrl: z.string().max(500),
   }),
 });
 

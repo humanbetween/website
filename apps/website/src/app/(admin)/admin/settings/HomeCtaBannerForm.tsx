@@ -1,16 +1,59 @@
 "use client";
 
-import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import type { HomeCtaBanner } from "@/lib/site-settings";
 
 export function HomeCtaBannerForm({ initial }: { initial: HomeCtaBanner }) {
   const [values, setValues] = useState<HomeCtaBanner>(initial);
   const [pending, setPending] = useState(false);
+  const [uploadingKind, setUploadingKind] = useState<"video" | "image" | null>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   function set<K extends keyof HomeCtaBanner>(key: K, v: HomeCtaBanner[K]) {
     setValues((prev) => ({ ...prev, [key]: v }));
+  }
+
+  async function uploadFile(file: File, kind: "video" | "image") {
+    setUploadingKind(kind);
+    try {
+      const presignRes = await fetch("/api/admin/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: kind === "video" ? "video" : "asset",
+          contentType: file.type || (kind === "video" ? "video/mp4" : "image/jpeg"),
+          size: file.size,
+          filename: file.name,
+        }),
+      });
+      if (!presignRes.ok) {
+        const body = await presignRes.json().catch(() => ({}));
+        throw new Error(body.error ?? "Could not get upload URL");
+      }
+      const presign = (await presignRes.json()) as {
+        url: string;
+        publicUrl: string;
+        contentType: string;
+      };
+      const uploadRes = await fetch(presign.url, {
+        method: "PUT",
+        headers: { "Content-Type": presign.contentType },
+        body: file,
+      });
+      if (!uploadRes.ok) {
+        throw new Error(`Upload failed (${uploadRes.status})`);
+      }
+      if (kind === "video") set("videoUrl", presign.publicUrl);
+      else set("imageUrl", presign.publicUrl);
+      toast.success(`${kind === "video" ? "Video" : "Image"} uploaded`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploadingKind(null);
+    }
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -30,6 +73,7 @@ export function HomeCtaBannerForm({ initial }: { initial: HomeCtaBanner }) {
             ctaLabel: values.ctaLabel.trim(),
             ctaUrl: values.ctaUrl.trim(),
             imageUrl: values.imageUrl.trim(),
+            videoUrl: values.videoUrl.trim(),
           },
         }),
       });
@@ -112,17 +156,105 @@ export function HomeCtaBannerForm({ initial }: { initial: HomeCtaBanner }) {
       </div>
 
       <Field
-        label="Right-side image URL"
-        hint="Optional. Decorative image shown on the right on desktop. Leave empty to keep just the gradient backdrop."
+        label="Right-side video URL"
+        hint="Optional MP4 — auto-plays muted in loop on desktop. Takes priority over the image."
       >
-        <input
-          type="url"
-          value={values.imageUrl}
-          onChange={(e) => set("imageUrl", e.target.value)}
-          maxLength={500}
-          placeholder="https://media.humanbetween.ai/banners/..."
-          className={inputCls}
-        />
+        <div className="flex flex-col gap-2">
+          <input
+            type="url"
+            value={values.videoUrl}
+            onChange={(e) => set("videoUrl", e.target.value)}
+            maxLength={500}
+            placeholder="https://media.humanbetween.ai/videos/..."
+            className={inputCls}
+          />
+          <div className="flex items-center gap-2">
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept="video/mp4,video/webm"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) uploadFile(f, "video");
+                if (videoInputRef.current) videoInputRef.current.value = "";
+              }}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => videoInputRef.current?.click()}
+              disabled={uploadingKind !== null}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-foreground/5 border border-border/60 text-xs text-muted-foreground hover:text-foreground hover:bg-foreground/10 disabled:opacity-60 transition-colors"
+            >
+              {uploadingKind === "video" ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Upload className="h-3 w-3" />
+              )}
+              Upload MP4
+            </button>
+            {values.videoUrl && (
+              <button
+                type="button"
+                onClick={() => set("videoUrl", "")}
+                className="text-[11px] text-muted-foreground hover:text-foreground underline"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+      </Field>
+
+      <Field
+        label="Right-side image URL"
+        hint="Optional. Used as the poster while the video loads, or alone if no video is set."
+      >
+        <div className="flex flex-col gap-2">
+          <input
+            type="url"
+            value={values.imageUrl}
+            onChange={(e) => set("imageUrl", e.target.value)}
+            maxLength={500}
+            placeholder="https://media.humanbetween.ai/assets/..."
+            className={inputCls}
+          />
+          <div className="flex items-center gap-2">
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) uploadFile(f, "image");
+                if (imageInputRef.current) imageInputRef.current.value = "";
+              }}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={uploadingKind !== null}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-foreground/5 border border-border/60 text-xs text-muted-foreground hover:text-foreground hover:bg-foreground/10 disabled:opacity-60 transition-colors"
+            >
+              {uploadingKind === "image" ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Upload className="h-3 w-3" />
+              )}
+              Upload image
+            </button>
+            {values.imageUrl && (
+              <button
+                type="button"
+                onClick={() => set("imageUrl", "")}
+                className="text-[11px] text-muted-foreground hover:text-foreground underline"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
       </Field>
 
       <button

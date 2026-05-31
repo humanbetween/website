@@ -81,6 +81,7 @@ export type HomeCtaBanner = {
   ctaLabel: string;
   ctaUrl: string;
   imageUrl: string;
+  videoUrl: string;
 };
 
 const DEFAULT_HOME_CTA: HomeCtaBanner = {
@@ -92,6 +93,7 @@ const DEFAULT_HOME_CTA: HomeCtaBanner = {
   ctaLabel: "Go unlimited",
   ctaUrl: "/pricing",
   imageUrl: "",
+  videoUrl: "",
 };
 
 export type HeaderCta = {

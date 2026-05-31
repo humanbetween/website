@@ -57,16 +57,29 @@ export function HomeCtaBanner({ banner }: { banner: Data }) {
             </div>
           </div>
 
-          {banner.imageUrl ? (
+          {(banner.videoUrl || banner.imageUrl) && (
             <div className="relative hidden md:block">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={banner.imageUrl}
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover rounded-2xl"
-              />
+              {banner.videoUrl ? (
+                <video
+                  src={banner.videoUrl}
+                  poster={banner.imageUrl || undefined}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  className="absolute inset-0 h-full w-full object-cover rounded-2xl"
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={banner.imageUrl}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover rounded-2xl"
+                />
+              )}
             </div>
-          ) : null}
+          )}
         </div>
       </div>
     </section>

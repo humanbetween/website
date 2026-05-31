@@ -1,7 +1,12 @@
 import { Suspense } from "react";
 import { Check, X } from "lucide-react";
-import { getPricingBanner, getPricingPlans } from "@/lib/site-settings";
+import {
+  getPricingBanner,
+  getPricingPlans,
+  getHomeCtaBanner,
+} from "@/lib/site-settings";
 import { PricingBanner } from "@/components/site/PricingBanner";
+import { HomeCtaBanner } from "@/components/site/HomeCtaBanner";
 import { CheckoutCancelToast } from "./CheckoutCancelToast";
 import { PricingButtons } from "./PricingButtons";
 
@@ -27,9 +32,10 @@ const LIFETIME_FEATURES: Array<{ label: string; included: boolean }> = [
 ];
 
 export default async function PricingPage() {
-  const [banner, plans] = await Promise.all([
+  const [banner, plans, ctaBanner] = await Promise.all([
     getPricingBanner(),
     getPricingPlans(),
+    getHomeCtaBanner(),
   ]);
 
   return (
@@ -85,6 +91,8 @@ export default async function PricingPage() {
           servers.
         </p>
       </div>
+
+      <HomeCtaBanner banner={ctaBanner} />
     </>
   );
 }
