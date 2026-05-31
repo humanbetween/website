@@ -65,7 +65,7 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[920px] p-0 overflow-hidden bg-card border-border/60 [&>button]:hidden">
-        <header className="flex items-start justify-between px-5 py-4 border-b border-border/40 gap-3">
+        <header className="flex items-center justify-between px-5 py-4 border-b border-border/40 gap-3">
           <div className="min-w-0">
             <DialogTitle className="text-base font-medium truncate">
               {prompt.title}
