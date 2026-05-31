@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { Heart, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { SortKey } from "@/lib/prompts/types";
@@ -29,6 +29,19 @@ export function PromptFilters({
   const sort = (params.get("sort") as SortKey) ?? "recent";
   const search = params.get("q") ?? "";
   const [searchDraft, setSearchDraft] = useState(search);
+
+  // If the currently selected category no longer has any prompts, drop it
+  // from the URL so the filter chip disappears and we don't show an empty grid.
+  useEffect(() => {
+    if (activeCat && !activeSet.has(activeCat)) {
+      const sp = new URLSearchParams(params.toString());
+      sp.delete("cat");
+      startTransition(() => {
+        router.replace(`/?${sp.toString()}`, { scroll: false });
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCat, activeCategoryKeys.join("|")]);
 
   const push = useCallback(
     (mut: (sp: URLSearchParams) => void) => {
@@ -98,7 +111,7 @@ export function PromptFilters({
           All
         </button>
         {categories
-          .filter((c) => activeSet.has(c.key) || c.key === activeCat)
+          .filter((c) => activeSet.has(c.key))
           .map((c) => (
             <button
               key={c.key}
