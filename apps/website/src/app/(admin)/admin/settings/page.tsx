@@ -8,6 +8,7 @@ import {
   Home,
   Share2,
   Rocket,
+  Link2,
 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import {
@@ -17,6 +18,7 @@ import {
   getHeroContent,
   getSocialLinks,
   getHomeCtaBanner,
+  getHeaderCta,
 } from "@/lib/site-settings";
 import { AdminPageHeader, AdminCard } from "@/components/admin/AdminShell";
 import { UpdatePasswordForm } from "./UpdatePasswordForm";
@@ -26,11 +28,12 @@ import { PromoSettingsForm } from "./PromoSettingsForm";
 import { HeroSettingsForm } from "./HeroSettingsForm";
 import { SocialLinksForm } from "./SocialLinksForm";
 import { HomeCtaBannerForm } from "./HomeCtaBannerForm";
+import { HeaderCtaForm } from "./HeaderCtaForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const [session, banner, plans, promo, hero, social, ctaBanner] =
+  const [session, banner, plans, promo, hero, social, ctaBanner, headerCta] =
     await Promise.all([
       auth.api.getSession({ headers: await headers() }),
       getPricingBanner(),
@@ -39,6 +42,7 @@ export default async function AdminSettingsPage() {
       getHeroContent(),
       getSocialLinks(),
       getHomeCtaBanner(),
+      getHeaderCta(),
     ]);
 
   return (
@@ -89,6 +93,18 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="px-5 py-6">
           <HeroSettingsForm initial={hero} />
+        </div>
+      </AdminCard>
+
+      <AdminCard className="mb-6">
+        <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2">
+          <Link2 className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-medium tracking-tight">
+            Header button (Skool / Instagram / community)
+          </h2>
+        </div>
+        <div className="px-5 py-6">
+          <HeaderCtaForm initial={headerCta} />
         </div>
       </AdminCard>
 

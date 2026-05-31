@@ -6,15 +6,16 @@ import { Menu, X, GraduationCap, User } from "lucide-react";
 import { Logo } from "./Logo";
 import { authClient } from "@/lib/auth-client";
 
-const SKOOL_URL = process.env.NEXT_PUBLIC_SKOOL_URL ?? "#";
+type HeaderCtaProp = { label: string; url: string };
 
-export function Header() {
+export function Header({ headerCta }: { headerCta?: HeaderCtaProp }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
   const { data: session } = authClient.useSession();
   const signedIn = !!session?.user;
   const accountHref = signedIn ? "/account" : "/auth/sign-in";
   const accountLabel = signedIn ? "Account" : "Sign in";
+  const showCta = !!(headerCta?.url && headerCta.label);
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-background/70 border-b border-border/50">
@@ -31,15 +32,17 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <a
-            href={SKOOL_URL}
-            target="_blank"
-            rel="noreferrer"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full glass text-xs font-medium hover:bg-card/80 transition-colors"
-          >
-            <GraduationCap className="h-3.5 w-3.5" />
-            Skool
-          </a>
+          {showCta && (
+            <a
+              href={headerCta!.url}
+              target="_blank"
+              rel="noreferrer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full glass text-xs font-medium hover:bg-card/80 transition-colors"
+            >
+              <GraduationCap className="h-3.5 w-3.5" />
+              {headerCta!.label}
+            </a>
+          )}
           <Link
             href="/pricing"
             className="hidden sm:inline-flex px-4 py-2 rounded-full bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
@@ -74,15 +77,17 @@ export function Header() {
             <Link href="/pricing" onClick={close} className="px-3 py-3 rounded-lg hover:bg-foreground/5">
               Pricing
             </Link>
-            <a
-              href={SKOOL_URL}
-              target="_blank"
-              rel="noreferrer"
-              onClick={close}
-              className="px-3 py-3 rounded-lg hover:bg-foreground/5 inline-flex items-center gap-2"
-            >
-              <GraduationCap className="h-4 w-4" /> Skool
-            </a>
+            {showCta && (
+              <a
+                href={headerCta!.url}
+                target="_blank"
+                rel="noreferrer"
+                onClick={close}
+                className="px-3 py-3 rounded-lg hover:bg-foreground/5 inline-flex items-center gap-2"
+              >
+                <GraduationCap className="h-4 w-4" /> {headerCta!.label}
+              </a>
+            )}
             <Link
               href={accountHref}
               onClick={close}

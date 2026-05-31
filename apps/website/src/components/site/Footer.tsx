@@ -17,12 +17,6 @@ export async function Footer() {
             <Link href="/account" className="hover:text-foreground transition-colors">
               Account
             </Link>
-            <a
-              href="mailto:hello@humanprompts.ai"
-              className="hover:text-foreground transition-colors"
-            >
-              Support: hello@humanprompts.ai
-            </a>
           </nav>
           <SocialIcons links={social} />
         </div>

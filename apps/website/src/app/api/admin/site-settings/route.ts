@@ -76,6 +76,14 @@ const homeCtaSchema = z.object({
   }),
 });
 
+const headerCtaSchema = z.object({
+  key: z.literal("header_cta"),
+  value: z.object({
+    label: z.string().max(40),
+    url: z.string().max(500),
+  }),
+});
+
 const bodySchema = z.discriminatedUnion("key", [
   bannerSchema,
   plansSchema,
@@ -83,6 +91,7 @@ const bodySchema = z.discriminatedUnion("key", [
   heroSchema,
   socialSchema,
   homeCtaSchema,
+  headerCtaSchema,
 ]);
 
 export async function PUT(request: Request) {

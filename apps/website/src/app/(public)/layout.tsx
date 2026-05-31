@@ -2,17 +2,20 @@ import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { ContactBubble } from "@/components/site/ContactBubble";
 import { CategoriesProvider } from "@/components/prompts/CategoriesContext";
-import { getPromptCategories } from "@/lib/site-settings";
+import { getHeaderCta, getPromptCategories } from "@/lib/site-settings";
 
 export default async function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const categories = await getPromptCategories();
+  const [categories, headerCta] = await Promise.all([
+    getPromptCategories(),
+    getHeaderCta(),
+  ]);
   return (
     <CategoriesProvider categories={categories}>
-      <Header />
+      <Header headerCta={headerCta} />
       <main className="flex-1">{children}</main>
       <Footer />
       <ContactBubble />

@@ -94,6 +94,16 @@ const DEFAULT_HOME_CTA: HomeCtaBanner = {
   imageUrl: "",
 };
 
+export type HeaderCta = {
+  label: string;
+  url: string;
+};
+
+const DEFAULT_HEADER_CTA: HeaderCta = {
+  label: "Skool",
+  url: "",
+};
+
 export type SocialLinks = {
   x: string;
   instagram: string;
@@ -147,6 +157,10 @@ export const getSocialLinks = cache(async (): Promise<SocialLinks> => {
 
 export const getHomeCtaBanner = cache(async (): Promise<HomeCtaBanner> => {
   return getRaw<HomeCtaBanner>("home_cta_banner", DEFAULT_HOME_CTA);
+});
+
+export const getHeaderCta = cache(async (): Promise<HeaderCta> => {
+  return getRaw<HeaderCta>("header_cta", DEFAULT_HEADER_CTA);
 });
 
 /**
