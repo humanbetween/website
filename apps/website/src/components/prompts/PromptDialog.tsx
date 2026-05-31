@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Copy, Check, Lock } from "lucide-react";
+import { Copy, Check, Lock, Download } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -57,6 +57,32 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
     }
   }
 
+  async function onDownloadReference() {
+    const url = prompt.referenceImageUrl;
+    if (!url) return;
+    const filename = (() => {
+      const fromUrl = url.split("/").pop()?.split("?")[0] ?? "";
+      if (fromUrl) return `${prompt.title.replace(/[^a-z0-9-]+/gi, "-")}-${fromUrl}`;
+      return `${prompt.title.replace(/[^a-z0-9-]+/gi, "-")}-reference.jpg`;
+    })();
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch {
+      // Fallback: open the image in a new tab so the user can save it
+      window.open(url, "_blank", "noopener");
+    }
+  }
+
   const accessText = detail?.promptText ?? prompt.promptText;
   const showUnlockCta = detail !== null && !detail.canAccess && !accessText;
   const primaryCategory = prompt.categories[0];
@@ -87,6 +113,17 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
                   {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                   {copied ? "Copied" : "Copy prompt"}
                 </button>
+                {prompt.referenceImageUrl && (
+                  <button
+                    type="button"
+                    onClick={onDownloadReference}
+                    title="Download the reference image to combine with the prompt"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground hover:bg-card/80 text-xs font-medium transition-colors"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Reference
+                  </button>
+                )}
                 <UnlimitedPill />
               </>
             ) : showUnlockCta ? (
