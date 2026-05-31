@@ -22,6 +22,7 @@ export const promptFormSchema = z.object({
   videoUrl: z.string().min(1),
   thumbnailUrl: z.string().nullable(),
   referenceImageUrl: z.string().nullable(),
+  isPublished: z.boolean(),
   assets: z.array(assetSchema),
   categories: z.array(categoryKey).min(1).max(10),
   tags: z.array(z.string().max(40)).max(20),

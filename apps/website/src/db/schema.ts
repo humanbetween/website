@@ -127,6 +127,7 @@ export const prompts = pgTable(
     popularityCount: integer("popularity_count").notNull().default(0),
     favoriteCount: integer("favorite_count").notNull().default(0),
     displayOrder: integer("display_order").notNull().default(0),
+    isPublished: boolean("is_published").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),

@@ -7,6 +7,7 @@ import { PricingBanner } from "@/components/site/PricingBanner";
 import { HomeCtaBanner } from "@/components/site/HomeCtaBanner";
 import { getCurrentAccess } from "@/lib/access";
 import { getFavoritePromptIds } from "@/lib/favorites";
+import { getActiveCategoryKeys } from "@/lib/prompts/queries";
 import {
   getPricingBanner,
   getPromoCard,
@@ -17,13 +18,15 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [banner, promo, hero, access, ctaBanner] = await Promise.all([
-    getPricingBanner(),
-    getPromoCard(),
-    getHeroContent(),
-    getCurrentAccess(),
-    getHomeCtaBanner(),
-  ]);
+  const [banner, promo, hero, access, ctaBanner, activeCategoryKeys] =
+    await Promise.all([
+      getPricingBanner(),
+      getPromoCard(),
+      getHeroContent(),
+      getCurrentAccess(),
+      getHomeCtaBanner(),
+      getActiveCategoryKeys(),
+    ]);
   const favoriteIds = await getFavoritePromptIds(access.userId);
 
   return (
@@ -70,7 +73,7 @@ export default async function HomePage() {
       </div>
 
       <Suspense fallback={<div className="h-14" />}>
-        <PromptFilters />
+        <PromptFilters activeCategoryKeys={activeCategoryKeys} />
       </Suspense>
 
       <section

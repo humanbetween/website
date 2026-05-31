@@ -50,6 +50,13 @@
       "when": 1780225809389,
       "tag": "0006_wealthy_shinko_yamashiro",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1780229036531,
+      "tag": "0007_polite_swordsman",
+      "breakpoints": true
     }
   ]
 }

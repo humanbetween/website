@@ -8,11 +8,16 @@ import type { SortKey } from "@/lib/prompts/types";
 import { authClient } from "@/lib/auth-client";
 import { useCategories } from "./CategoriesContext";
 
-export function PromptFilters() {
+export function PromptFilters({
+  activeCategoryKeys = [],
+}: {
+  activeCategoryKeys?: string[];
+}) {
   const router = useRouter();
   const params = useSearchParams();
   const [, startTransition] = useTransition();
   const categories = useCategories();
+  const activeSet = new Set(activeCategoryKeys);
   const { data: session } = authClient.useSession();
   const signedIn = !!session?.user;
   const [scrolled, setScrolled] = useState(false);
@@ -99,16 +104,18 @@ export function PromptFilters() {
         >
           All
         </button>
-        {categories.map((c) => (
-          <button
-            key={c.key}
-            type="button"
-            onClick={() => setCategory(c.key === activeCat ? null : c.key)}
-            className={chip(c.key === activeCat)}
-          >
-            {c.label}
-          </button>
-        ))}
+        {categories
+          .filter((c) => activeSet.has(c.key) || c.key === activeCat)
+          .map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() => setCategory(c.key === activeCat ? null : c.key)}
+              className={chip(c.key === activeCat)}
+            >
+              {c.label}
+            </button>
+          ))}
 
         <span className="hidden sm:inline-block w-px h-5 bg-border/60 mx-1" />
 

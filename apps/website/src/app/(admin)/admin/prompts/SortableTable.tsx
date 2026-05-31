@@ -33,6 +33,7 @@ export type AdminPromptRow = {
   categories: string[];
   priceCents: number;
   isFree: boolean;
+  isPublished: boolean;
   popularityCount: number;
   createdAt: string;
   videoUrl: string;
@@ -133,7 +134,14 @@ function Row({ row }: { row: AdminPromptRow }) {
   };
 
   return (
-    <tr ref={setNodeRef} style={style} className="border-t border-border/40 hover:bg-card/30">
+    <tr
+      ref={setNodeRef}
+      style={style}
+      className={
+        "border-t border-border/40 hover:bg-card/30 " +
+        (!row.isPublished ? "opacity-60" : "")
+      }
+    >
       <td className="px-3 py-3">
         <button
           type="button"
@@ -148,7 +156,16 @@ function Row({ row }: { row: AdminPromptRow }) {
       <td className="px-2 py-3">
         <RowThumb src={row.videoUrl} poster={row.thumbnailUrl} alt={row.title} />
       </td>
-      <td className="px-3 py-3">{row.title}</td>
+      <td className="px-3 py-3">
+        <span className="inline-flex items-center gap-2">
+          {row.title}
+          {!row.isPublished && (
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-foreground/5 border border-border/40 text-muted-foreground">
+              Hidden
+            </span>
+          )}
+        </span>
+      </td>
       <td className="px-3 py-3">
         <span className="flex flex-wrap gap-1">
           {row.categories.map((c) => (

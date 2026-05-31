@@ -17,6 +17,7 @@ export default async function AdminPromptsListPage() {
         categories: schema.prompts.categories,
         priceCents: schema.prompts.priceCents,
         isFree: schema.prompts.isFree,
+        isPublished: schema.prompts.isPublished,
         popularityCount: schema.prompts.popularityCount,
         createdAt: schema.prompts.createdAt,
         videoUrl: schema.prompts.videoUrl,

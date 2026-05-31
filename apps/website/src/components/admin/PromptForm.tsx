@@ -95,6 +95,7 @@ export function PromptForm({ initial, mode }: Props) {
       videoUrl: initial?.videoUrl ?? "",
       thumbnailUrl: initial?.thumbnailUrl ?? null,
       referenceImageUrl: initial?.referenceImageUrl ?? null,
+      isPublished: initial?.isPublished ?? true,
       assets: initial?.assets ?? [],
       categories: initial?.categories ?? [],
       tags: initial?.tags ?? [],
@@ -334,6 +335,20 @@ export function PromptForm({ initial, mode }: Props) {
           className={inputCls}
           placeholder="One or two sentences shown on the detail page."
         />
+      </Field>
+
+      <Field
+        label="Visible on the public site"
+        hint="Turn off to hide this prompt from the main library and search. Existing direct links also return 404 for non-admins."
+      >
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            {...register("isPublished")}
+            className="h-4 w-4"
+          />
+          <span className="text-muted-foreground">Published</span>
+        </label>
       </Field>
 
       <Field

@@ -30,13 +30,28 @@ export type ListPromptsArgs = {
   hasUnlimited?: boolean;
   /** If set, only return prompts favorited by this user. */
   favoritesOfUserId?: string | null;
+  /** Admin-only: when true, also include unpublished (hidden) prompts. */
+  includeUnpublished?: boolean;
 };
+
+export async function getActiveCategoryKeys(): Promise<string[]> {
+  const rows = await db.execute<{ cat: string }>(sql`
+    select distinct unnest(${schema.prompts.categories}) as cat
+    from ${schema.prompts}
+    where ${schema.prompts.deletedAt} is null
+      and ${schema.prompts.isPublished} = true
+  `);
+  return (rows as unknown as Array<{ cat: string }>).map((r) => r.cat);
+}
 
 export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResponse> {
   const sort: SortKey = args.sort ?? "recent";
   const cursor = decodeCursor(args.cursor ?? null);
 
   const wheres = [isNull(schema.prompts.deletedAt)];
+  if (!args.includeUnpublished) {
+    wheres.push(eq(schema.prompts.isPublished, true));
+  }
   if (args.category) {
     wheres.push(sql`${schema.prompts.categories} @> ARRAY[${args.category}]::text[]`);
   }
@@ -120,6 +135,7 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     tools: r.tools,
     popularityCount: r.popularityCount,
     favoriteCount: r.favoriteCount,
+    isPublished: r.isPublished,
     createdAt: r.createdAt.toISOString(),
     promptText: r.isFree || args.hasUnlimited ? r.promptText : null,
   }));

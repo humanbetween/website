@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
+import { isAdmin } from "@/lib/admin";
 import { canAccessPrompt } from "@/lib/access";
 import { getPromptById } from "@/lib/prompts/queries";
 import type { Category, PromptDetail } from "@/lib/prompts/types";
@@ -27,6 +28,11 @@ export async function GET(
     }
 
     const session = await auth.api.getSession({ headers: await headers() });
+    const viewerIsAdmin = session ? await isAdmin(session.user.id) : false;
+    if (!prompt.isPublished && !viewerIsAdmin) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
     const canAccess = await canAccessPrompt({
       isFree: prompt.isFree,
       promptId: prompt.id,
@@ -47,6 +53,7 @@ export async function GET(
       tools: prompt.tools,
       popularityCount: prompt.popularityCount,
       favoriteCount: prompt.favoriteCount,
+      isPublished: prompt.isPublished,
       createdAt: prompt.createdAt.toISOString(),
       promptText: canAccess ? prompt.promptText : null,
       canAccess,
