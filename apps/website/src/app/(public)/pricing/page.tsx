@@ -10,8 +10,8 @@ const YEARLY_FEATURES: Array<{ label: string; included: boolean }> = [
   { label: "Every new prompt as it lands", included: true },
   { label: "Animated backgrounds collection", included: true },
   { label: "Commercial license", included: true },
-  { label: "Priority email support", included: false },
   { label: "Cancel anytime", included: true },
+  { label: "Priority email support", included: false },
   { label: "Pay once, own it forever", included: false },
 ];
 
