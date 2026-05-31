@@ -122,13 +122,13 @@ function Plan({
         )}
       </header>
 
-      <div className="flex items-baseline gap-2">
+      <div className="flex items-baseline gap-2 flex-wrap">
         {originalCents !== null && (
-          <span className="text-2xl font-semibold text-muted-foreground line-through tabular-nums">
+          <span className="text-3xl sm:text-4xl font-bold text-muted-foreground line-through tabular-nums tracking-tight">
             ${(originalCents / 100).toFixed(0)}
           </span>
         )}
-        <span className="text-5xl font-bold tracking-tight tabular-nums">
+        <span className="text-6xl font-extrabold tracking-tighter tabular-nums">
           ${(priceCents / 100).toFixed(0)}
         </span>
         <span className="text-sm font-medium text-muted-foreground">{unit}</span>

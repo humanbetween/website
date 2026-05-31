@@ -48,10 +48,10 @@ export function PricingButtons({ tier, cta, highlight }: Props) {
         onClick={onCheckout}
         disabled={pending}
         className={
-          "mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-medium disabled:opacity-60 transition-colors " +
+          "mt-2 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-sm font-semibold disabled:opacity-60 transition-opacity " +
           (highlight
-            ? "bg-foreground text-background hover:bg-foreground/90"
-            : "glass hover:bg-card/80")
+            ? "bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 text-slate-900 hover:opacity-90 shadow-lg shadow-sky-500/20"
+            : "glass hover:bg-card/80 transition-colors")
         }
       >
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
