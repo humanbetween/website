@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from "react";
  *   simple scroll threshold so the header still gets a backdrop.
  */
 const HEADER_HEIGHT = 64; // matches top-16 sticky offset
-const EXTRA_PX = 200; // additional scroll past pinning before glass shows
+const EXTRA_PX = 0; // fire as soon as the bar reaches its sticky slot
 
 export function useGlassTrigger() {
   const [active, setActive] = useState(false);
