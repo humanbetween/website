@@ -16,11 +16,17 @@ export function PlansSettingsForm({ initial }: Props) {
       ? centsToDollars(initial.yearlyOriginalCents)
       : "",
   );
+  const [yearlyDescription, setYearlyDescription] = useState(
+    initial.yearlyDescription,
+  );
   const [lifetime, setLifetime] = useState(centsToDollars(initial.lifetimeCents));
   const [lifetimeOriginal, setLifetimeOriginal] = useState(
     initial.lifetimeOriginalCents !== null
       ? centsToDollars(initial.lifetimeOriginalCents)
       : "",
+  );
+  const [lifetimeDescription, setLifetimeDescription] = useState(
+    initial.lifetimeDescription,
   );
   const [pending, setPending] = useState(false);
 
@@ -44,6 +50,8 @@ export function PlansSettingsForm({ initial }: Props) {
             lifetimeCents,
             yearlyOriginalCents: parseOptionalDollars(yearlyOriginal),
             lifetimeOriginalCents: parseOptionalDollars(lifetimeOriginal),
+            yearlyDescription: yearlyDescription.trim(),
+            lifetimeDescription: lifetimeDescription.trim(),
           },
         }),
       });
@@ -90,6 +98,20 @@ export function PlansSettingsForm({ initial }: Props) {
             className={inputCls}
           />
         </Field>
+        <div className="col-span-2">
+          <Field
+            label="Description"
+            hint="Shown right under the plan name on /pricing. Up to 280 chars."
+          >
+            <textarea
+              value={yearlyDescription}
+              onChange={(e) => setYearlyDescription(e.target.value)}
+              maxLength={280}
+              rows={2}
+              className={inputCls}
+            />
+          </Field>
+        </div>
       </fieldset>
 
       <fieldset className="grid grid-cols-2 gap-4">
@@ -121,6 +143,20 @@ export function PlansSettingsForm({ initial }: Props) {
             className={inputCls}
           />
         </Field>
+        <div className="col-span-2">
+          <Field
+            label="Description"
+            hint="Shown right under the plan name on /pricing. Up to 280 chars."
+          >
+            <textarea
+              value={lifetimeDescription}
+              onChange={(e) => setLifetimeDescription(e.target.value)}
+              maxLength={280}
+              rows={2}
+              className={inputCls}
+            />
+          </Field>
+        </div>
       </fieldset>
 
       <button

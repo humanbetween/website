@@ -24,6 +24,8 @@ export type PricingPlans = {
   lifetimeCents: number;
   yearlyOriginalCents: number | null;
   lifetimeOriginalCents: number | null;
+  yearlyDescription: string;
+  lifetimeDescription: string;
 };
 
 const DEFAULT_PLANS: PricingPlans = {
@@ -31,6 +33,10 @@ const DEFAULT_PLANS: PricingPlans = {
   lifetimeCents: 19900,
   yearlyOriginalCents: null,
   lifetimeOriginalCents: null,
+  yearlyDescription:
+    "Get started fast with unlimited access to every prompt in the library.",
+  lifetimeDescription:
+    "The most valuable plan. Own every current and future prompt — forever.",
 };
 
 export type PromoCard = {

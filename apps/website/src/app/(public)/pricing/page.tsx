@@ -51,6 +51,7 @@ export default async function PricingPage() {
           <Plan
             tier="yearly"
             name="Yearly"
+            description={plans.yearlyDescription}
             priceCents={plans.yearlyCents}
             originalCents={plans.yearlyOriginalCents}
             unit="/ year"
@@ -61,6 +62,7 @@ export default async function PricingPage() {
           <Plan
             tier="lifetime"
             name="Lifetime"
+            description={plans.lifetimeDescription}
             badge="Best value"
             priceCents={plans.lifetimeCents}
             originalCents={plans.lifetimeOriginalCents}
@@ -84,6 +86,7 @@ export default async function PricingPage() {
 function Plan({
   tier,
   name,
+  description,
   badge,
   priceCents,
   originalCents,
@@ -95,6 +98,7 @@ function Plan({
 }: {
   tier: "yearly" | "lifetime";
   name: string;
+  description: string;
   badge?: string;
   priceCents: number;
   originalCents: number | null;
@@ -111,15 +115,23 @@ function Plan({
         (highlight ? "border-foreground/60" : "border-border/40")
       }
     >
-      <header className="flex items-center justify-between gap-2">
-        <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-          {name}
-        </p>
-        {badge && (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider bg-foreground text-background">
-            {badge}
-          </span>
+      <header className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+            {name}
+          </p>
+          {badge && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider bg-foreground text-background">
+              {badge}
+            </span>
+          )}
+        </div>
+        {description && (
+          <p className="text-sm text-muted-foreground leading-relaxed text-balance">
+            {description}
+          </p>
         )}
+        <div className="border-t border-dashed border-border/60 mt-1" />
       </header>
 
       <div className="flex items-baseline gap-2 flex-wrap font-system-num">

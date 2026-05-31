@@ -25,6 +25,8 @@ const plansSchema = z.object({
     lifetimeCents: z.number().int().min(0).max(1_000_000),
     yearlyOriginalCents: z.number().int().min(0).max(1_000_000).nullable(),
     lifetimeOriginalCents: z.number().int().min(0).max(1_000_000).nullable(),
+    yearlyDescription: z.string().max(280),
+    lifetimeDescription: z.string().max(280),
   }),
 });
 
