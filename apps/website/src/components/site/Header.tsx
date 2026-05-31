@@ -2,14 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, GraduationCap } from "lucide-react";
+import { Menu, X, GraduationCap, User } from "lucide-react";
 import { Logo } from "./Logo";
+import { authClient } from "@/lib/auth-client";
 
 const SKOOL_URL = process.env.NEXT_PUBLIC_SKOOL_URL ?? "#";
 
 export function Header() {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+  const { data: session } = authClient.useSession();
+  const signedIn = !!session?.user;
+  const accountHref = signedIn ? "/account" : "/auth/sign-in";
+  const accountLabel = signedIn ? "Account" : "Sign in";
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md bg-background/70 border-b border-border/50">
@@ -41,6 +46,14 @@ export function Header() {
           >
             Go unlimited
           </Link>
+          <Link
+            href={accountHref}
+            aria-label={accountLabel}
+            title={accountLabel}
+            className="hidden sm:inline-flex h-9 w-9 items-center justify-center rounded-full glass text-muted-foreground hover:text-foreground hover:bg-card/80 transition-colors"
+          >
+            <User className="h-4 w-4" />
+          </Link>
           <button
             type="button"
             aria-label="Toggle menu"
@@ -70,6 +83,13 @@ export function Header() {
             >
               <GraduationCap className="h-4 w-4" /> Skool
             </a>
+            <Link
+              href={accountHref}
+              onClick={close}
+              className="px-3 py-3 rounded-lg hover:bg-foreground/5 inline-flex items-center gap-2"
+            >
+              <User className="h-4 w-4" /> {accountLabel}
+            </Link>
             <Link
               href="/pricing"
               onClick={close}
