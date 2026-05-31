@@ -10,6 +10,15 @@ type Props = {
 };
 
 export function PlansSettingsForm({ initial }: Props) {
+  const [monthly, setMonthly] = useState(centsToDollars(initial.monthlyCents));
+  const [monthlyOriginal, setMonthlyOriginal] = useState(
+    initial.monthlyOriginalCents !== null
+      ? centsToDollars(initial.monthlyOriginalCents)
+      : "",
+  );
+  const [monthlyDescription, setMonthlyDescription] = useState(
+    initial.monthlyDescription,
+  );
   const [yearly, setYearly] = useState(centsToDollars(initial.yearlyCents));
   const [yearlyOriginal, setYearlyOriginal] = useState(
     initial.yearlyOriginalCents !== null
@@ -19,23 +28,14 @@ export function PlansSettingsForm({ initial }: Props) {
   const [yearlyDescription, setYearlyDescription] = useState(
     initial.yearlyDescription,
   );
-  const [lifetime, setLifetime] = useState(centsToDollars(initial.lifetimeCents));
-  const [lifetimeOriginal, setLifetimeOriginal] = useState(
-    initial.lifetimeOriginalCents !== null
-      ? centsToDollars(initial.lifetimeOriginalCents)
-      : "",
-  );
-  const [lifetimeDescription, setLifetimeDescription] = useState(
-    initial.lifetimeDescription,
-  );
   const [pending, setPending] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const monthlyCents = parseRequiredDollars(monthly);
     const yearlyCents = parseRequiredDollars(yearly);
-    const lifetimeCents = parseRequiredDollars(lifetime);
-    if (yearlyCents === null || lifetimeCents === null) {
-      toast.error("Yearly and lifetime prices are required");
+    if (monthlyCents === null || yearlyCents === null) {
+      toast.error("Monthly and yearly prices are required");
       return;
     }
     setPending(true);
@@ -46,12 +46,12 @@ export function PlansSettingsForm({ initial }: Props) {
         body: JSON.stringify({
           key: "pricing_plans",
           value: {
+            monthlyCents,
             yearlyCents,
-            lifetimeCents,
+            monthlyOriginalCents: parseOptionalDollars(monthlyOriginal),
             yearlyOriginalCents: parseOptionalDollars(yearlyOriginal),
-            lifetimeOriginalCents: parseOptionalDollars(lifetimeOriginal),
+            monthlyDescription: monthlyDescription.trim(),
             yearlyDescription: yearlyDescription.trim(),
-            lifetimeDescription: lifetimeDescription.trim(),
           },
         }),
       });
@@ -69,6 +69,51 @@ export function PlansSettingsForm({ initial }: Props) {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-5">
+      <fieldset className="grid grid-cols-2 gap-4">
+        <legend className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-2 col-span-2">
+          Monthly subscription
+        </legend>
+        <Field label="Price ($)" required>
+          <input
+            type="number"
+            min={0}
+            step="1"
+            required
+            value={monthly}
+            onChange={(e) => setMonthly(e.target.value)}
+            className={inputCls}
+          />
+        </Field>
+        <Field
+          label="Original price ($)"
+          hint="Optional — shown struck-through next to the price."
+        >
+          <input
+            type="number"
+            min={0}
+            step="1"
+            value={monthlyOriginal}
+            onChange={(e) => setMonthlyOriginal(e.target.value)}
+            placeholder="—"
+            className={inputCls}
+          />
+        </Field>
+        <div className="col-span-2">
+          <Field
+            label="Description"
+            hint="Shown right under the plan name on /pricing. Up to 280 chars."
+          >
+            <textarea
+              value={monthlyDescription}
+              onChange={(e) => setMonthlyDescription(e.target.value)}
+              maxLength={280}
+              rows={2}
+              className={inputCls}
+            />
+          </Field>
+        </div>
+      </fieldset>
+
       <fieldset className="grid grid-cols-2 gap-4">
         <legend className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-2 col-span-2">
           Yearly subscription
@@ -114,51 +159,6 @@ export function PlansSettingsForm({ initial }: Props) {
         </div>
       </fieldset>
 
-      <fieldset className="grid grid-cols-2 gap-4">
-        <legend className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-2 col-span-2">
-          Lifetime
-        </legend>
-        <Field label="Price ($)" required>
-          <input
-            type="number"
-            min={0}
-            step="1"
-            required
-            value={lifetime}
-            onChange={(e) => setLifetime(e.target.value)}
-            className={inputCls}
-          />
-        </Field>
-        <Field
-          label="Original price ($)"
-          hint="Optional — shown struck-through next to the price."
-        >
-          <input
-            type="number"
-            min={0}
-            step="1"
-            value={lifetimeOriginal}
-            onChange={(e) => setLifetimeOriginal(e.target.value)}
-            placeholder="—"
-            className={inputCls}
-          />
-        </Field>
-        <div className="col-span-2">
-          <Field
-            label="Description"
-            hint="Shown right under the plan name on /pricing. Up to 280 chars."
-          >
-            <textarea
-              value={lifetimeDescription}
-              onChange={(e) => setLifetimeDescription(e.target.value)}
-              maxLength={280}
-              rows={2}
-              className={inputCls}
-            />
-          </Field>
-        </div>
-      </fieldset>
-
       <button
         type="submit"
         disabled={pending}
@@ -170,8 +170,8 @@ export function PlansSettingsForm({ initial }: Props) {
 
       <p className="text-[11px] text-muted-foreground">
         These prices control what visitors see on /pricing. The actual Stripe
-        charge still uses the Price IDs in <code>STRIPE_PRICE_YEARLY</code> and{" "}
-        <code>STRIPE_PRICE_LIFETIME</code> — keep both in sync if you change
+        charge still uses the Price IDs in <code>STRIPE_PRICE_MONTHLY</code> and{" "}
+        <code>STRIPE_PRICE_YEARLY</code> — keep both in sync if you change
         the displayed amount.
       </p>
     </form>

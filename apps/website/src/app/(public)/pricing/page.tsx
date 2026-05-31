@@ -12,23 +12,22 @@ import { PricingButtons } from "./PricingButtons";
 
 export const dynamic = "force-dynamic";
 
-const YEARLY_FEATURES: Array<{ label: string; included: boolean }> = [
+const MONTHLY_FEATURES: Array<{ label: string; included: boolean }> = [
   { label: "Unlimited access to the prompt library", included: true },
   { label: "Every new prompt as it lands", included: true },
   { label: "Animated backgrounds collection", included: true },
   { label: "Commercial license", included: true },
   { label: "Cancel anytime", included: true },
   { label: "Priority email support", included: false },
-  { label: "Pay once, own it forever", included: false },
 ];
 
-const LIFETIME_FEATURES: Array<{ label: string; included: boolean }> = [
+const YEARLY_FEATURES: Array<{ label: string; included: boolean }> = [
   { label: "Unlimited access to the prompt library", included: true },
-  { label: "Every new prompt as it lands — forever", included: true },
+  { label: "Every new prompt as it lands", included: true },
   { label: "Animated backgrounds collection", included: true },
   { label: "Commercial license", included: true },
+  { label: "Cancel anytime", included: true },
   { label: "Priority email support", included: true },
-  { label: "Pay once, own it forever", included: true },
 ];
 
 export default async function PricingPage() {
@@ -61,27 +60,27 @@ export default async function PricingPage() {
 
         <div className="grid md:grid-cols-2 gap-4 max-w-3xl mx-auto">
           <Plan
+            tier="monthly"
+            name="Monthly"
+            description={plans.monthlyDescription}
+            priceCents={plans.monthlyCents}
+            originalCents={plans.monthlyOriginalCents}
+            unit="/ month"
+            tagline="Cancel anytime."
+            features={MONTHLY_FEATURES}
+            cta="Subscribe monthly"
+          />
+          <Plan
             tier="yearly"
             name="Yearly"
             description={plans.yearlyDescription}
+            badge="Best value"
             priceCents={plans.yearlyCents}
             originalCents={plans.yearlyOriginalCents}
             unit="/ year"
-            tagline="Cancel anytime."
+            tagline="2 months free vs paying monthly."
             features={YEARLY_FEATURES}
             cta="Subscribe yearly"
-          />
-          <Plan
-            tier="lifetime"
-            name="Lifetime"
-            description={plans.lifetimeDescription}
-            badge="Best value"
-            priceCents={plans.lifetimeCents}
-            originalCents={plans.lifetimeOriginalCents}
-            unit="once"
-            tagline="Pay once. Own every prompt, forever."
-            features={LIFETIME_FEATURES}
-            cta="Buy lifetime"
             highlight
           />
         </div>
@@ -110,7 +109,7 @@ function Plan({
   cta,
   highlight = false,
 }: {
-  tier: "yearly" | "lifetime";
+  tier: "monthly" | "yearly";
   name: string;
   description: string;
   badge?: string;

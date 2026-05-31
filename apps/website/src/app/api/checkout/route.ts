@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 const bodySchema = z.discriminatedUnion("mode", [
   z.object({
     mode: z.literal("subscription"),
-    tier: z.enum(["yearly", "lifetime"]),
+    tier: z.enum(["monthly", "yearly"]),
   }),
   z.object({
     mode: z.literal("one_time"),
@@ -58,23 +58,18 @@ export async function POST(request: Request) {
   try {
     if (parsed.data.mode === "subscription") {
       const priceId =
-        parsed.data.tier === "yearly"
-          ? stripeConfig.yearlyPriceId
-          : stripeConfig.lifetimePriceId;
+        parsed.data.tier === "monthly"
+          ? stripeConfig.monthlyPriceId
+          : stripeConfig.yearlyPriceId;
       if (!priceId) {
         return NextResponse.json(
           { error: "Stripe price not configured" },
           { status: 500 },
         );
       }
-      const isLifetime = parsed.data.tier === "lifetime";
       const checkout = await stripe.checkout.sessions.create({
-        mode: isLifetime ? "payment" : "subscription",
-        ...(customerId
-          ? { customer: customerId }
-          : isLifetime
-            ? { customer_creation: "always" }
-            : {}),
+        mode: "subscription",
+        ...(customerId ? { customer: customerId } : {}),
         line_items: [{ price: priceId, quantity: 1 }],
         consent_collection: { promotions: "auto" },
         success_url: appUrl("/checkout/welcome"),

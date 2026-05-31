@@ -21,12 +21,12 @@ const bannerSchema = z.object({
 const plansSchema = z.object({
   key: z.literal("pricing_plans"),
   value: z.object({
+    monthlyCents: z.number().int().min(0).max(1_000_000),
     yearlyCents: z.number().int().min(0).max(1_000_000),
-    lifetimeCents: z.number().int().min(0).max(1_000_000),
+    monthlyOriginalCents: z.number().int().min(0).max(1_000_000).nullable(),
     yearlyOriginalCents: z.number().int().min(0).max(1_000_000).nullable(),
-    lifetimeOriginalCents: z.number().int().min(0).max(1_000_000).nullable(),
+    monthlyDescription: z.string().max(280),
     yearlyDescription: z.string().max(280),
-    lifetimeDescription: z.string().max(280),
   }),
 });
 

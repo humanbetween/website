@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 type Props = {
-  tier: "yearly" | "lifetime";
+  tier: "monthly" | "yearly";
   cta: string;
   highlight: boolean;
 };

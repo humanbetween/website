@@ -67,10 +67,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   if (session.mode === "subscription" && session.subscription) {
     const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+    const tier =
+      session.metadata?.tier === "monthly" ? "monthly" : "yearly";
     await db
       .update(schema.profiles)
       .set({
-        subscriptionTier: "yearly",
+        subscriptionTier: tier,
         subscriptionStatus: sub.status === "active" ? "active" : sub.status,
         stripeCustomerId: session.customer as string,
         subscriptionCurrentPeriodEnd: subPeriodEnd(sub),
@@ -86,25 +88,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     });
   } else if (session.mode === "payment") {
     const promptId = session.metadata?.promptId ?? null;
-    const tier = session.metadata?.tier;
-    if (tier === "lifetime") {
-      await db
-        .update(schema.profiles)
-        .set({
-          subscriptionTier: "lifetime",
-          subscriptionStatus: "active",
-          stripeCustomerId: session.customer as string,
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.profiles.userId, userId));
-      await db.insert(schema.purchases).values({
-        userId,
-        promptId: null,
-        stripePaymentIntentId: session.payment_intent as string,
-        type: "lifetime",
-        amountCents: session.amount_total ?? 0,
-      });
-    } else if (promptId) {
+    if (promptId) {
       await db
         .insert(schema.purchases)
         .values({

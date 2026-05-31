@@ -20,23 +20,23 @@ const DEFAULT_BANNER: PricingBanner = {
 };
 
 export type PricingPlans = {
+  monthlyCents: number;
   yearlyCents: number;
-  lifetimeCents: number;
+  monthlyOriginalCents: number | null;
   yearlyOriginalCents: number | null;
-  lifetimeOriginalCents: number | null;
+  monthlyDescription: string;
   yearlyDescription: string;
-  lifetimeDescription: string;
 };
 
 const DEFAULT_PLANS: PricingPlans = {
-  yearlyCents: 14900,
-  lifetimeCents: 19900,
+  monthlyCents: 2900,
+  yearlyCents: 19900,
+  monthlyOriginalCents: null,
   yearlyOriginalCents: null,
-  lifetimeOriginalCents: null,
+  monthlyDescription:
+    "Try the full library risk-free. Cancel any time.",
   yearlyDescription:
-    "Get started fast with unlimited access to every prompt in the library.",
-  lifetimeDescription:
-    "The most valuable plan. Own every current and future prompt — forever.",
+    "Best value — save vs paying month by month.",
 };
 
 export type PromoCard = {
