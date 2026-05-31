@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { Check, X } from "lucide-react";
 import { getPricingBanner, getPricingPlans } from "@/lib/site-settings";
 import { PricingBanner } from "@/components/site/PricingBanner";
+import { CheckoutCancelToast } from "./CheckoutCancelToast";
 import { PricingButtons } from "./PricingButtons";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +34,9 @@ export default async function PricingPage() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <CheckoutCancelToast />
+      </Suspense>
       <PricingBanner banner={banner} />
 
       <div className="container mx-auto max-w-5xl px-6 pt-16 pb-24">
