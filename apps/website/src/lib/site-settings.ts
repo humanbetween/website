@@ -73,6 +73,27 @@ const DEFAULT_HERO: HeroContent = {
     "A growing library of curated prompts for video, image and websites. Built for creators who move fast.",
 };
 
+export type HomeCtaBanner = {
+  active: boolean;
+  eyebrow: string;
+  title: string;
+  description: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  imageUrl: string;
+};
+
+const DEFAULT_HOME_CTA: HomeCtaBanner = {
+  active: true,
+  eyebrow: "🚀 Unlimited access",
+  title: "Build at the speed of thought.",
+  description:
+    "Stop staring at the blank canvas. Every prompt in the library is field-tested by builders shipping real products — copy, paste, and you're off.",
+  ctaLabel: "Go unlimited",
+  ctaUrl: "/pricing",
+  imageUrl: "",
+};
+
 export type SocialLinks = {
   x: string;
   instagram: string;
@@ -122,6 +143,10 @@ export const getHeroContent = cache(async (): Promise<HeroContent> => {
 
 export const getSocialLinks = cache(async (): Promise<SocialLinks> => {
   return getRaw<SocialLinks>("social_links", DEFAULT_SOCIAL);
+});
+
+export const getHomeCtaBanner = cache(async (): Promise<HomeCtaBanner> => {
+  return getRaw<HomeCtaBanner>("home_cta_banner", DEFAULT_HOME_CTA);
 });
 
 /**

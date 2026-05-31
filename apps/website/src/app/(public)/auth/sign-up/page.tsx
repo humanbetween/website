@@ -11,6 +11,7 @@ export default function SignUpPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newsletter, setNewsletter] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,6 +27,14 @@ export default function SignUpPage() {
         callbackURL: "/",
       });
       if (res.error) throw new Error(res.error.message ?? "Sign-up failed");
+      if (newsletter) {
+        fetch("/api/newsletter/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, source: "signup" }),
+          keepalive: true,
+        }).catch(() => {});
+      }
       router.push("/");
       router.refresh();
     } catch (err) {
@@ -88,6 +97,19 @@ export default function SignUpPage() {
                 placeholder="At least 8 characters"
               />
             </div>
+          </label>
+
+          <label className="inline-flex items-start gap-2.5 text-xs text-muted-foreground cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={newsletter}
+              onChange={(e) => setNewsletter(e.target.checked)}
+              className="mt-0.5 h-3.5 w-3.5 rounded border-border/60 accent-foreground"
+            />
+            <span>
+              Send me occasional emails about new prompts and tips. Unsubscribe
+              anytime.
+            </span>
           </label>
 
           {error && (

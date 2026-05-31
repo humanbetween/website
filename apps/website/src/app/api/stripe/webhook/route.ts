@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import type Stripe from "stripe";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
+import { subscribeToNewsletter } from "@/lib/newsletter";
 import { appUrl, stripe, stripeConfig } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
@@ -117,20 +118,27 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
   }
 
-  if (fromAnonymous) {
-    const email = session.customer_details?.email ?? session.customer_email;
-    if (email) {
-      try {
-        await auth.api.signInMagicLink({
-          body: {
-            email,
-            callbackURL: appUrl("/account?welcome=1"),
-          },
-          headers: new Headers(),
-        });
-      } catch (err) {
-        console.error("magic link send failed for", email, err);
-      }
+  const checkoutEmail = session.customer_details?.email ?? session.customer_email;
+
+  if (session.consent?.promotions === "opt_in" && checkoutEmail) {
+    try {
+      await subscribeToNewsletter({ email: checkoutEmail, source: "checkout" });
+    } catch (err) {
+      console.error("newsletter opt-in from checkout failed", err);
+    }
+  }
+
+  if (fromAnonymous && checkoutEmail) {
+    try {
+      await auth.api.signInMagicLink({
+        body: {
+          email: checkoutEmail,
+          callbackURL: appUrl("/account?welcome=1"),
+        },
+        headers: new Headers(),
+      });
+    } catch (err) {
+      console.error("magic link send failed for", checkoutEmail, err);
     }
   }
 }

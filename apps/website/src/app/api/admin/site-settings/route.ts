@@ -63,12 +63,26 @@ const socialSchema = z.object({
   }),
 });
 
+const homeCtaSchema = z.object({
+  key: z.literal("home_cta_banner"),
+  value: z.object({
+    active: z.boolean(),
+    eyebrow: z.string().max(80),
+    title: z.string().min(1).max(160),
+    description: z.string().max(500),
+    ctaLabel: z.string().min(1).max(40),
+    ctaUrl: z.string().min(1).max(500),
+    imageUrl: z.string().max(500),
+  }),
+});
+
 const bodySchema = z.discriminatedUnion("key", [
   bannerSchema,
   plansSchema,
   promoSchema,
   heroSchema,
   socialSchema,
+  homeCtaSchema,
 ]);
 
 export async function PUT(request: Request) {

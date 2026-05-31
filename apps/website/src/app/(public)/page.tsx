@@ -4,22 +4,25 @@ import { ArrowRight } from "lucide-react";
 import { PromptFilters } from "@/components/prompts/PromptFilters";
 import { PromptGrid } from "@/components/prompts/PromptGrid";
 import { PricingBanner } from "@/components/site/PricingBanner";
+import { HomeCtaBanner } from "@/components/site/HomeCtaBanner";
 import { getCurrentAccess } from "@/lib/access";
 import { getFavoritePromptIds } from "@/lib/favorites";
 import {
   getPricingBanner,
   getPromoCard,
   getHeroContent,
+  getHomeCtaBanner,
 } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [banner, promo, hero, access] = await Promise.all([
+  const [banner, promo, hero, access, ctaBanner] = await Promise.all([
     getPricingBanner(),
     getPromoCard(),
     getHeroContent(),
     getCurrentAccess(),
+    getHomeCtaBanner(),
   ]);
   const favoriteIds = await getFavoritePromptIds(access.userId);
 
@@ -64,7 +67,7 @@ export default async function HomePage() {
 
       <section
         id="library"
-        className="container mx-auto max-w-7xl px-6 pt-6 pb-20"
+        className="container mx-auto max-w-7xl px-6 pt-6 pb-12"
       >
         <Suspense fallback={null}>
           <PromptGrid
@@ -75,6 +78,8 @@ export default async function HomePage() {
           />
         </Suspense>
       </section>
+
+      <HomeCtaBanner banner={ctaBanner} />
     </>
   );
 }

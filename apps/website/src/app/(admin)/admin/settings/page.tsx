@@ -7,6 +7,7 @@ import {
   Sparkles,
   Home,
   Share2,
+  Rocket,
 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import {
@@ -15,6 +16,7 @@ import {
   getPromoCard,
   getHeroContent,
   getSocialLinks,
+  getHomeCtaBanner,
 } from "@/lib/site-settings";
 import { AdminPageHeader, AdminCard } from "@/components/admin/AdminShell";
 import { UpdatePasswordForm } from "./UpdatePasswordForm";
@@ -23,18 +25,21 @@ import { PlansSettingsForm } from "./PlansSettingsForm";
 import { PromoSettingsForm } from "./PromoSettingsForm";
 import { HeroSettingsForm } from "./HeroSettingsForm";
 import { SocialLinksForm } from "./SocialLinksForm";
+import { HomeCtaBannerForm } from "./HomeCtaBannerForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const [session, banner, plans, promo, hero, social] = await Promise.all([
-    auth.api.getSession({ headers: await headers() }),
-    getPricingBanner(),
-    getPricingPlans(),
-    getPromoCard(),
-    getHeroContent(),
-    getSocialLinks(),
-  ]);
+  const [session, banner, plans, promo, hero, social, ctaBanner] =
+    await Promise.all([
+      auth.api.getSession({ headers: await headers() }),
+      getPricingBanner(),
+      getPricingPlans(),
+      getPromoCard(),
+      getHeroContent(),
+      getSocialLinks(),
+      getHomeCtaBanner(),
+    ]);
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
@@ -120,6 +125,18 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="px-5 py-6">
           <PromoSettingsForm initial={promo} />
+        </div>
+      </AdminCard>
+
+      <AdminCard className="mb-6">
+        <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2">
+          <Rocket className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-medium tracking-tight">
+            Home bottom CTA banner
+          </h2>
+        </div>
+        <div className="px-5 py-6">
+          <HomeCtaBannerForm initial={ctaBanner} />
         </div>
       </AdminCard>
 
