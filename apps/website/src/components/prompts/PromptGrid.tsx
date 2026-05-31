@@ -50,6 +50,7 @@ export function PromptGrid({
     Object.entries({
       cat: params.get("cat") ?? "",
       free: params.get("free") ?? "",
+      fav: params.get("fav") ?? "",
       sort: params.get("sort") ?? "",
       q: params.get("q") ?? "",
     }).filter(([, v]) => v),

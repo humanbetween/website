@@ -12,13 +12,14 @@ export async function GET(request: Request) {
   const catRaw = searchParams.get("cat");
   const category = catRaw && CAT_RE.test(catRaw) ? catRaw : null;
   const freeOnly = searchParams.get("free") === "1";
+  const favoritesOnly = searchParams.get("fav") === "1";
   const sortRaw = searchParams.get("sort");
   const sort: SortKey = sortRaw === "popular" ? "popular" : "recent";
   const search = searchParams.get("q");
   const cursor = searchParams.get("cursor");
 
   try {
-    const { hasUnlimited } = await getCurrentAccess();
+    const { userId, hasUnlimited } = await getCurrentAccess();
     const data = await listPrompts({
       cursor,
       category,
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
       sort,
       search,
       hasUnlimited,
+      favoritesOfUserId: favoritesOnly ? userId : null,
     });
     return NextResponse.json(data);
   } catch (err) {

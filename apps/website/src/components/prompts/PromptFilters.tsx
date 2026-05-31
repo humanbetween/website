@@ -2,8 +2,10 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
-import { Search } from "lucide-react";
+import { Heart, Search } from "lucide-react";
+import { toast } from "sonner";
 import type { SortKey } from "@/lib/prompts/types";
+import { authClient } from "@/lib/auth-client";
 import { useCategories } from "./CategoriesContext";
 
 export function PromptFilters() {
@@ -11,9 +13,12 @@ export function PromptFilters() {
   const params = useSearchParams();
   const [, startTransition] = useTransition();
   const categories = useCategories();
+  const { data: session } = authClient.useSession();
+  const signedIn = !!session?.user;
 
   const activeCat = params.get("cat");
   const freeOnly = params.get("free") === "1";
+  const favoritesOnly = params.get("fav") === "1";
   const sort = (params.get("sort") as SortKey) ?? "recent";
   const search = params.get("q") ?? "";
   const [searchDraft, setSearchDraft] = useState(search);
@@ -45,6 +50,18 @@ export function PromptFilters() {
 
   function setSort(next: SortKey) {
     push((sp) => sp.set("sort", next));
+  }
+
+  function toggleFavoritesOnly() {
+    if (!signedIn) {
+      toast("Sign in to filter by favorites.");
+      router.push("/auth/sign-in?redirect=/");
+      return;
+    }
+    push((sp) => {
+      if (favoritesOnly) sp.delete("fav");
+      else sp.set("fav", "1");
+    });
   }
 
   function applySearch(e: React.FormEvent) {
@@ -97,6 +114,23 @@ export function PromptFilters() {
           className={chip(sort === "popular")}
         >
           Popular
+        </button>
+
+        <span className="hidden sm:inline-block w-px h-5 bg-border/60 mx-1" />
+
+        <button
+          type="button"
+          onClick={toggleFavoritesOnly}
+          aria-pressed={favoritesOnly}
+          className={chip(favoritesOnly) + " inline-flex items-center gap-1.5"}
+          title={signedIn ? "Show only favorited prompts" : "Sign in to see favorites"}
+        >
+          <Heart
+            className={
+              "h-3 w-3 " + (favoritesOnly ? "fill-current" : "")
+            }
+          />
+          Favorites
         </button>
 
         <form onSubmit={applySearch} className="ml-auto relative w-full sm:w-64">

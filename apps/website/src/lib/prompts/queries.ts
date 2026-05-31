@@ -28,6 +28,8 @@ export type ListPromptsArgs = {
   sort?: SortKey;
   search?: string | null;
   hasUnlimited?: boolean;
+  /** If set, only return prompts favorited by this user. */
+  favoritesOfUserId?: string | null;
 };
 
 export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResponse> {
@@ -40,6 +42,11 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
   }
   if (args.freeOnly) {
     wheres.push(eq(schema.prompts.isFree, true));
+  }
+  if (args.favoritesOfUserId) {
+    wheres.push(
+      sql`exists (select 1 from ${schema.favorites} where ${schema.favorites.promptId} = ${schema.prompts.id} and ${schema.favorites.userId} = ${args.favoritesOfUserId})`,
+    );
   }
   if (args.search && args.search.trim()) {
     const term = `%${args.search.trim()}%`;
