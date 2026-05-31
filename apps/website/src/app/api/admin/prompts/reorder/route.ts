@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { eq, inArray } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
@@ -27,23 +27,20 @@ export async function POST(request: Request) {
   const { ids } = parsed.data;
 
   try {
-    await db.transaction(async (tx) => {
-      const existing = await tx
-        .select({ id: schema.prompts.id })
-        .from(schema.prompts)
-        .where(inArray(schema.prompts.id, ids));
-      const known = new Set(existing.map((r) => r.id));
-      const filtered = ids.filter((id) => known.has(id));
-
-      await Promise.all(
-        filtered.map((id, index) =>
-          tx
-            .update(schema.prompts)
-            .set({ displayOrder: index, updatedAt: new Date() })
-            .where(eq(schema.prompts.id, id)),
-        ),
-      );
-    });
+    const cases = sql.join(
+      ids.map((id, index) => sql`when ${id}::uuid then ${index}`),
+      sql.raw(" "),
+    );
+    const idList = sql.join(
+      ids.map((id) => sql`${id}::uuid`),
+      sql.raw(", "),
+    );
+    await db.execute(sql`
+      update ${schema.prompts}
+      set display_order = case id ${cases} end,
+          updated_at = now()
+      where id in (${idList})
+    `);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("reorder failed", err);
