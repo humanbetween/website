@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 import { Heart, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { SortKey } from "@/lib/prompts/types";
@@ -15,6 +15,16 @@ export function PromptFilters() {
   const categories = useCategories();
   const { data: session } = authClient.useSession();
   const signedIn = !!session?.user;
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 80);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const activeCat = params.get("cat");
   const freeOnly = params.get("free") === "1";
@@ -73,7 +83,14 @@ export function PromptFilters() {
   }
 
   return (
-    <div className="sticky top-16 z-40 py-3 backdrop-blur-md bg-background/40 border-b border-border/20">
+    <div
+      className={
+        "sticky top-16 z-40 py-3 transition-colors duration-200 " +
+        (scrolled
+          ? "backdrop-blur-md bg-background/70 border-b border-border/30"
+          : "bg-transparent border-b border-transparent")
+      }
+    >
       <div className="container mx-auto max-w-7xl px-5 sm:px-6 flex flex-wrap items-center gap-2">
         <button
           type="button"

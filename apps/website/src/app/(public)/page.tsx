@@ -34,7 +34,7 @@ export default async function HomePage() {
         {/* Subtle grid background — goes deep into the page before fading */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-[2200px] overflow-hidden bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:linear-gradient(to_bottom,black_0%,black_80%,transparent_100%)]"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[2200px] overflow-hidden bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:linear-gradient(to_bottom,black_0%,black_80%,transparent_100%)]"
         />
 
         <section className="relative">
