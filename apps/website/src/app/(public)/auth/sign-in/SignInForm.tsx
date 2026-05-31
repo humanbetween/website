@@ -11,7 +11,7 @@ export function SignInForm() {
   const params = useSearchParams();
   const redirectTo = params.get("redirect") ?? "/";
 
-  const [mode, setMode] = useState<"password" | "magic">("magic");
+  const [mode, setMode] = useState<"password" | "magic">("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
