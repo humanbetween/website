@@ -98,7 +98,7 @@ export function PromptForm({ initial, mode }: Props) {
       assets: initial?.assets ?? [],
       categories: initial?.categories ?? [],
       tags: initial?.tags ?? [],
-      tools: initial?.tools ?? [],
+      tools: initial?.tools ?? (mode === "create" ? ["Seedance 2"] : []),
     },
   });
 
