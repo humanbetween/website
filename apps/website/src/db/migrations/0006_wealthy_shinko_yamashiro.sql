@@ -1,0 +1,1 @@
+ALTER TABLE "prompts" ADD COLUMN "reference_image_url" text;

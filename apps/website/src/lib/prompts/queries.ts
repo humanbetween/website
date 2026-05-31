@@ -112,6 +112,7 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     description: r.description,
     videoUrl: r.videoUrl,
     thumbnailUrl: r.thumbnailUrl,
+    referenceImageUrl: r.referenceImageUrl,
     isFree: r.isFree,
     priceCents: r.priceCents,
     categories: r.categories as Category[],

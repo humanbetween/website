@@ -72,6 +72,19 @@ export function PromptCard({
             isSignedIn={isSignedIn}
           />
         </div>
+        {prompt.referenceImageUrl && (
+          <div
+            className="absolute bottom-2 left-2 h-12 w-12 rounded-lg overflow-hidden border border-white/30 shadow-lg bg-black/40 backdrop-blur-sm"
+            title="Reference frame — upload this image with the prompt"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={prompt.referenceImageUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
       </div>
       <div className="px-3 py-3 flex items-center justify-between gap-2">
         <div className="min-w-0">

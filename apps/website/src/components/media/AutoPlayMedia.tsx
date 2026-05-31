@@ -19,6 +19,13 @@ export type AutoPlayMediaProps = {
    * asset and scroll if needed.
    */
   natural?: boolean;
+  /**
+   * When true, the media is centered inside the container and scaled to
+   * fit using object-contain. Combined with a max-height on the parent
+   * this lets vertical (9:16) and horizontal (16:9) assets coexist in
+   * the same slot without cropping or layout jumps.
+   */
+  fit?: boolean;
 };
 
 export function AutoPlayMedia({
@@ -28,6 +35,7 @@ export function AutoPlayMedia({
   aspectRatio,
   className,
   natural = false,
+  fit = false,
 }: AutoPlayMediaProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isImage = IMAGE_RE.test(src);
@@ -40,6 +48,37 @@ export function AutoPlayMedia({
       videoRef.current.pause();
     }
   });
+
+  if (fit) {
+    return (
+      <div
+        ref={containerRef}
+        className={`relative w-full flex items-center justify-center bg-black ${className ?? ""}`}
+      >
+        {isImage ? (
+          <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+            className="block max-h-full max-w-full w-auto h-auto object-contain"
+          />
+        ) : (
+          <video
+            ref={videoRef}
+            src={src}
+            poster={poster ?? undefined}
+            muted
+            playsInline
+            loop
+            preload="metadata"
+            aria-label={alt}
+            className="block max-h-full max-w-full w-auto h-auto object-contain"
+          />
+        )}
+      </div>
+    );
+  }
 
   if (natural) {
     return (

@@ -64,8 +64,10 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[920px] p-0 overflow-hidden bg-card border-border/60 [&>button]:hidden">
-        <header className="flex items-center justify-between px-5 py-4 border-b border-border/40 gap-3">
+      <DialogContent
+        className="max-w-[920px] w-[calc(100vw-2rem)] max-h-[calc(100vh-3rem)] p-0 overflow-hidden bg-card border-border/60 flex flex-col [&>button]:hidden"
+      >
+        <header className="flex items-center justify-between px-5 py-4 border-b border-border/40 gap-3 shrink-0">
           <div className="min-w-0">
             <DialogTitle className="text-base font-medium truncate">
               {prompt.title}
@@ -93,16 +95,31 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
           </div>
         </header>
 
-        <AutoPlayMedia
-          src={prompt.videoUrl}
-          poster={prompt.thumbnailUrl}
-          alt={prompt.title}
-          aspectRatio="16 / 10"
-          className="bg-background"
-        />
+        <div className="relative flex-1 min-h-0 overflow-hidden bg-black">
+          <AutoPlayMedia
+            src={prompt.videoUrl}
+            poster={prompt.thumbnailUrl}
+            alt={prompt.title}
+            fit
+            className="h-full"
+          />
+          {prompt.referenceImageUrl && (
+            <div
+              className="absolute bottom-3 left-3 h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden border border-white/30 shadow-xl bg-black/40 backdrop-blur-sm"
+              title="Reference frame — upload this image with the prompt"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={prompt.referenceImageUrl}
+                alt="Reference"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          )}
+        </div>
 
         {(prompt.tools.length > 0 || prompt.tags.length > 0) && (
-          <div className="px-5 py-4 border-t border-border/40 grid sm:grid-cols-2 gap-4">
+          <div className="px-5 py-4 border-t border-border/40 grid sm:grid-cols-2 gap-4 shrink-0">
             {prompt.tools.length > 0 && (
               <ChipGroup title="Use with" items={prompt.tools} />
             )}

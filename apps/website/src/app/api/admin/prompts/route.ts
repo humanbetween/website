@@ -42,6 +42,7 @@ export async function POST(request: Request) {
         isFree: parsed.data.isFree,
         videoUrl: parsed.data.videoUrl,
         thumbnailUrl: parsed.data.thumbnailUrl ?? null,
+        referenceImageUrl: parsed.data.referenceImageUrl ?? null,
         assets: parsed.data.assets,
         categories: parsed.data.categories,
         tags: parsed.data.tags,

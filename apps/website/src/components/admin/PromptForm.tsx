@@ -94,6 +94,7 @@ export function PromptForm({ initial, mode }: Props) {
       isFree: initial?.isFree ?? false,
       videoUrl: initial?.videoUrl ?? "",
       thumbnailUrl: initial?.thumbnailUrl ?? null,
+      referenceImageUrl: initial?.referenceImageUrl ?? null,
       assets: initial?.assets ?? [],
       categories: initial?.categories ?? [],
       tags: initial?.tags ?? [],
@@ -102,9 +103,11 @@ export function PromptForm({ initial, mode }: Props) {
   });
 
   const videoUrl = watch("videoUrl");
+  const referenceImageUrl = watch("referenceImageUrl");
   const categories = watch("categories");
   const tags = watch("tags");
   const tools = watch("tools");
+  const [refUploading, setRefUploading] = useState(false);
 
   async function uploadVideo(file: File) {
     const presignRes = await fetch("/api/admin/upload-url", {
@@ -136,6 +139,42 @@ export function PromptForm({ initial, mode }: Props) {
       throw new Error(`Upload failed (${uploadRes.status} ${uploadRes.statusText})`);
     }
     return presign.publicUrl;
+  }
+
+  async function onReferenceChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setRefUploading(true);
+    setError(null);
+    try {
+      const presignRes = await fetch("/api/admin/upload-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind: "asset",
+          contentType: file.type || "image/jpeg",
+          size: file.size,
+          filename: file.name,
+        }),
+      });
+      if (!presignRes.ok) throw new Error("Could not get upload URL");
+      const presign = (await presignRes.json()) as {
+        url: string;
+        publicUrl: string;
+        contentType: string;
+      };
+      const up = await fetch(presign.url, {
+        method: "PUT",
+        headers: { "Content-Type": presign.contentType },
+        body: file,
+      });
+      if (!up.ok) throw new Error(`Upload failed (${up.status})`);
+      setValue("referenceImageUrl", presign.publicUrl, { shouldValidate: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Reference upload failed");
+    } finally {
+      setRefUploading(false);
+    }
   }
 
   async function onVideoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -227,6 +266,53 @@ export function PromptForm({ initial, mode }: Props) {
               aspectRatio="16 / 10"
               className="rounded-xl border border-border/40"
               sizes="(max-width: 640px) 100vw, 600px"
+            />
+          </div>
+        )}
+      </Field>
+
+      <Field
+        label="Reference image (optional)"
+        hint="Small thumbnail shown on the prompt card and dialog — for the image / starting frame that needs to be uploaded to the AI tool along with the prompt. Leave empty to hide."
+        error={errors.referenceImageUrl?.message}
+      >
+        <input
+          {...register("referenceImageUrl")}
+          className={inputCls}
+          placeholder="https://media.humanbetween.ai/assets/…"
+        />
+        <div className="flex items-center gap-3 mt-2">
+          <label className="inline-flex items-center gap-2 px-3 py-2 rounded-full glass text-xs cursor-pointer hover:bg-card/80">
+            {refUploading ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Upload className="h-3.5 w-3.5" />
+            )}
+            Upload image
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={onReferenceChange}
+            />
+          </label>
+          {referenceImageUrl && (
+            <button
+              type="button"
+              onClick={() => setValue("referenceImageUrl", null, { shouldValidate: true })}
+              className="text-[11px] text-muted-foreground hover:text-foreground underline"
+            >
+              Remove
+            </button>
+          )}
+        </div>
+        {referenceImageUrl && (
+          <div className="mt-3 h-20 w-20 rounded-lg overflow-hidden border border-border/40 bg-card">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={referenceImageUrl}
+              alt="Reference"
+              className="h-full w-full object-cover"
             />
           </div>
         )}

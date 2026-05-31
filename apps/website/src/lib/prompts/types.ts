@@ -42,6 +42,7 @@ export type PromptListItem = {
   description: string;
   videoUrl: string;
   thumbnailUrl: string | null;
+  referenceImageUrl: string | null;
   isFree: boolean;
   priceCents: number;
   categories: Category[];
@@ -65,6 +66,7 @@ export type PromptRow = {
   description: string;
   videoUrl: string;
   thumbnailUrl: string | null;
+  referenceImageUrl: string | null;
   isFree: boolean;
   priceCents: number;
   categories: string[];
@@ -83,6 +85,7 @@ export function rowToListItem(p: PromptRow): PromptListItem {
     description: p.description,
     videoUrl: p.videoUrl,
     thumbnailUrl: p.thumbnailUrl,
+    referenceImageUrl: p.referenceImageUrl,
     isFree: p.isFree,
     priceCents: p.priceCents,
     categories: p.categories,

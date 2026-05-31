@@ -39,6 +39,7 @@ export async function GET(
       description: prompt.description,
       videoUrl: prompt.videoUrl,
       thumbnailUrl: prompt.thumbnailUrl,
+      referenceImageUrl: prompt.referenceImageUrl,
       isFree: prompt.isFree,
       priceCents: prompt.priceCents,
       categories: prompt.categories as Category[],

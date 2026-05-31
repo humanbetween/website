@@ -107,6 +107,7 @@ export const prompts = pgTable(
     isFree: boolean("is_free").notNull().default(false),
     videoUrl: text("video_url").notNull(),
     thumbnailUrl: text("thumbnail_url"),
+    referenceImageUrl: text("reference_image_url"),
     assets: jsonb("assets")
       .$type<PromptAsset[]>()
       .notNull()

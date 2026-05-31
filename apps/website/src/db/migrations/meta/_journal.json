@@ -43,6 +43,13 @@
       "when": 1780224288468,
       "tag": "0005_fluffy_sleeper",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1780225809389,
+      "tag": "0006_wealthy_shinko_yamashiro",
+      "breakpoints": true
     }
   ]
 }
