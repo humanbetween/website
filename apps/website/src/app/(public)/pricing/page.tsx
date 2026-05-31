@@ -140,7 +140,7 @@ function Plan({
           )}
         </div>
         {description && (
-          <p className="text-sm text-muted-foreground leading-relaxed text-balance">
+          <p className="text-sm text-muted-foreground leading-relaxed text-balance whitespace-pre-line">
             {description}
           </p>
         )}
