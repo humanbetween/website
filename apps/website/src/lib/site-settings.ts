@@ -54,6 +54,19 @@ const DEFAULT_PROMO: PromoCard = {
   position: 8,
 };
 
+export type HeroContent = {
+  titleLine1: string;
+  titleLine2: string;
+  subtitle: string;
+};
+
+const DEFAULT_HERO: HeroContent = {
+  titleLine1: "Premium AI prompts.",
+  titleLine2: "Copy, paste, ship.",
+  subtitle:
+    "A growing library of curated prompts for video, image and websites. Built for creators who move fast.",
+};
+
 async function getRaw<T>(key: string, fallback: T): Promise<T> {
   try {
     const rows = await db
@@ -79,6 +92,10 @@ export const getPricingPlans = cache(async (): Promise<PricingPlans> => {
 
 export const getPromoCard = cache(async (): Promise<PromoCard> => {
   return getRaw<PromoCard>("promo_card", DEFAULT_PROMO);
+});
+
+export const getHeroContent = cache(async (): Promise<HeroContent> => {
+  return getRaw<HeroContent>("hero_content", DEFAULT_HERO);
 });
 
 /**

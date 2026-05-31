@@ -1,25 +1,35 @@
 import { headers } from "next/headers";
-import { User, Shield, Megaphone, DollarSign, Sparkles } from "lucide-react";
+import {
+  User,
+  Shield,
+  Megaphone,
+  DollarSign,
+  Sparkles,
+  Home,
+} from "lucide-react";
 import { auth } from "@/lib/auth";
 import {
   getPricingBanner,
   getPricingPlans,
   getPromoCard,
+  getHeroContent,
 } from "@/lib/site-settings";
 import { AdminPageHeader, AdminCard } from "@/components/admin/AdminShell";
 import { UpdatePasswordForm } from "./UpdatePasswordForm";
 import { BannerSettingsForm } from "./BannerSettingsForm";
 import { PlansSettingsForm } from "./PlansSettingsForm";
 import { PromoSettingsForm } from "./PromoSettingsForm";
+import { HeroSettingsForm } from "./HeroSettingsForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const [session, banner, plans, promo] = await Promise.all([
+  const [session, banner, plans, promo, hero] = await Promise.all([
     auth.api.getSession({ headers: await headers() }),
     getPricingBanner(),
     getPricingPlans(),
     getPromoCard(),
+    getHeroContent(),
   ]);
 
   return (
@@ -60,6 +70,18 @@ export default async function AdminSettingsPage() {
           </div>
         </AdminCard>
       </div>
+
+      <AdminCard className="mb-6">
+        <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2">
+          <Home className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-medium tracking-tight">
+            Home hero copy
+          </h2>
+        </div>
+        <div className="px-5 py-6">
+          <HeroSettingsForm initial={hero} />
+        </div>
+      </AdminCard>
 
       <AdminCard className="mb-6">
         <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2">

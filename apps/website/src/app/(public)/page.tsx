@@ -4,14 +4,19 @@ import { ArrowRight } from "lucide-react";
 import { PromptFilters } from "@/components/prompts/PromptFilters";
 import { PromptGrid } from "@/components/prompts/PromptGrid";
 import { PricingBanner } from "@/components/site/PricingBanner";
-import { getPricingBanner, getPromoCard } from "@/lib/site-settings";
+import {
+  getPricingBanner,
+  getPromoCard,
+  getHeroContent,
+} from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [banner, promo] = await Promise.all([
+  const [banner, promo, hero] = await Promise.all([
     getPricingBanner(),
     getPromoCard(),
+    getHeroContent(),
   ]);
 
   return (
@@ -23,15 +28,14 @@ export default async function HomePage() {
           aria-hidden
           className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-sky-400/15 via-sky-400/5 to-transparent"
         />
-        <div className="relative container mx-auto max-w-4xl px-6 pt-16 md:pt-24 pb-10 text-center">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl leading-[0.95] text-balance font-bold">
-            <span className="uppercase">Premium AI prompts.</span>
+        <div className="relative container mx-auto max-w-4xl px-6 pt-16 md:pt-24 pb-12 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl leading-[1.05] text-balance font-bold">
+            <span className="uppercase">{hero.titleLine1}</span>
             <br />
-            <span className="font-medium">Copy, paste, ship.</span>
+            <span className="font-medium">{hero.titleLine2}</span>
           </h1>
-          <p className="mt-5 max-w-xl mx-auto text-base text-muted-foreground">
-            A growing library of curated prompts for video, image and websites.
-            Built for creators who move fast.
+          <p className="mt-5 max-w-2xl mx-auto text-base text-muted-foreground text-balance">
+            {hero.subtitle}
           </p>
           <div className="mt-7 flex items-center justify-center gap-3">
             <Link

@@ -41,10 +41,20 @@ const promoSchema = z.object({
   }),
 });
 
+const heroSchema = z.object({
+  key: z.literal("hero_content"),
+  value: z.object({
+    titleLine1: z.string().min(1).max(80),
+    titleLine2: z.string().min(1).max(80),
+    subtitle: z.string().min(1).max(280),
+  }),
+});
+
 const bodySchema = z.discriminatedUnion("key", [
   bannerSchema,
   plansSchema,
   promoSchema,
+  heroSchema,
 ]);
 
 export async function PUT(request: Request) {
