@@ -6,9 +6,11 @@ export type NewsletterSource = "signup" | "checkout" | "footer" | "unknown";
 
 export async function subscribeToNewsletter({
   email,
+  name,
   source,
 }: {
   email: string;
+  name?: string;
   source: NewsletterSource;
 }): Promise<{ created: boolean }> {
   const normalized = email.trim().toLowerCase();
@@ -22,8 +24,7 @@ export async function subscribeToNewsletter({
       .limit(1)
   )[0];
   if (existing) {
-    // Already in our DB. Still try to upsert into Resend in case it was missing.
-    await maybeSyncResendContact(normalized).catch(() => {});
+    await maybeSyncResendContact({ email: normalized, name }).catch(() => {});
     return { created: false };
   }
 
@@ -32,19 +33,26 @@ export async function subscribeToNewsletter({
     .values({ email: normalized, source })
     .onConflictDoNothing();
 
-  await maybeSyncResendContact(normalized).catch((err) => {
+  await maybeSyncResendContact({ email: normalized, name }).catch((err) => {
     console.error("resend audience sync failed", err);
   });
 
   return { created: true };
 }
 
-async function maybeSyncResendContact(email: string) {
+async function maybeSyncResendContact({
+  email,
+  name,
+}: {
+  email: string;
+  name?: string;
+}) {
   const audienceId = process.env.RESEND_AUDIENCE_ID;
   if (!audienceId) return;
   await resend.contacts.create({
     audienceId,
     email,
+    firstName: name?.trim() || undefined,
     unsubscribed: false,
   });
 }

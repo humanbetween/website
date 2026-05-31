@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
   email: z.string().email().max(200),
+  name: z.string().max(120).optional(),
   source: z.enum(["signup", "checkout", "footer", "unknown"]).default("unknown"),
 });
 
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
   try {
     const result = await subscribeToNewsletter({
       email: parsed.data.email,
+      name: parsed.data.name,
       source: parsed.data.source,
     });
     return NextResponse.json({ ok: true, ...result });
