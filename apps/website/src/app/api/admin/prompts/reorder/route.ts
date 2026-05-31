@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
@@ -25,25 +25,21 @@ export async function POST(request: Request) {
   }
 
   const { ids } = parsed.data;
+  const now = new Date();
 
   try {
-    const cases = sql.join(
-      ids.map((id, index) => sql`when ${id}::uuid then ${index}`),
-      sql.raw(" "),
+    await Promise.all(
+      ids.map((id, index) =>
+        db
+          .update(schema.prompts)
+          .set({ displayOrder: index, updatedAt: now })
+          .where(eq(schema.prompts.id, id)),
+      ),
     );
-    const idList = sql.join(
-      ids.map((id) => sql`${id}::uuid`),
-      sql.raw(", "),
-    );
-    await db.execute(sql`
-      update ${schema.prompts}
-      set display_order = case id ${cases} end,
-          updated_at = now()
-      where id in (${idList})
-    `);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("reorder failed", err);
-    return NextResponse.json({ error: "Reorder failed" }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Reorder failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -9,7 +9,7 @@ if (!url || url === "postgres://placeholder") {
 
 console.log("[migrate] Running drizzle-kit migrate…");
 try {
-  execSync("bunx drizzle-kit migrate", { stdio: "inherit" });
+  execSync("npx --yes drizzle-kit migrate", { stdio: "inherit" });
 } catch (err) {
   console.error("[migrate] drizzle-kit migrate failed.");
   process.exit(1);
