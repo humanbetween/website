@@ -12,6 +12,7 @@ const YEARLY_FEATURES: Array<{ label: string; included: boolean }> = [
   { label: "Commercial license", included: true },
   { label: "Priority email support", included: false },
   { label: "Cancel anytime", included: true },
+  { label: "Pay once, own it forever", included: false },
 ];
 
 const LIFETIME_FEATURES: Array<{ label: string; included: boolean }> = [
