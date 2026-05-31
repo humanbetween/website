@@ -13,10 +13,10 @@ export function Footer() {
             Account
           </Link>
           <a
-            href="mailto:hello@humanbetween.com"
+            href="mailto:hello@humanprompts.ai"
             className="hover:text-foreground transition-colors"
           >
-            Support: hello@humanbetween.com
+            Support: hello@humanprompts.ai
           </a>
         </nav>
       </div>

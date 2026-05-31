@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description:
     "A library of premium AI prompts for video, image and websites. Copy, paste, ship.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "https://humanbetween.ai",
+    process.env.NEXT_PUBLIC_APP_URL ?? "https://humanprompts.ai",
   ),
   openGraph: {
     title: "Human Between — AI prompts for creators",

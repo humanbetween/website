@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { desc, isNull } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://humanbetween.ai";
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://humanprompts.ai";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [

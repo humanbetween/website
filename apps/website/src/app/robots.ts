@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://humanbetween.ai";
+const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://humanprompts.ai";
 
 export default function robots(): MetadataRoute.Robots {
   return {

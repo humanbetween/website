@@ -48,10 +48,10 @@ export default async function CheckoutWelcomePage() {
           <p>
             Still stuck?{" "}
             <a
-              href="mailto:hello@humanbetween.com"
+              href="mailto:hello@humanprompts.ai"
               className="underline hover:text-foreground"
             >
-              hello@humanbetween.com
+              hello@humanprompts.ai
             </a>{" "}
             — we’ll get you in.
           </p>
