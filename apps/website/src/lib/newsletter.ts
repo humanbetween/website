@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
-import { resend } from "@/lib/resend";
+import { resend, sendNewSubscriberEmail } from "@/lib/resend";
 
 export type NewsletterSource = "signup" | "checkout" | "footer" | "unknown";
 
@@ -33,9 +33,14 @@ export async function subscribeToNewsletter({
     .values({ email: normalized, source })
     .onConflictDoNothing();
 
-  await maybeSyncResendContact({ email: normalized, name }).catch((err) => {
-    console.error("resend audience sync failed", err);
-  });
+  await Promise.allSettled([
+    maybeSyncResendContact({ email: normalized, name }).catch((err) => {
+      console.error("resend audience sync failed", err);
+    }),
+    sendNewSubscriberEmail({ email: normalized, name, source }).catch((err) => {
+      console.error("new subscriber email failed", err);
+    }),
+  ]);
 
   return { created: true };
 }

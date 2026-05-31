@@ -27,6 +27,55 @@ export async function sendMagicLinkEmail({
   });
 }
 
+export async function sendNewSubscriberEmail({
+  email,
+  name,
+  source,
+}: {
+  email: string;
+  name?: string;
+  source: string;
+}) {
+  await resend.emails.send({
+    from: `Human Prompts <${fromEmail}>`,
+    to: supportEmail,
+    subject: `🎉 New newsletter subscriber: ${email}`,
+    text:
+      `New subscriber\n\n` +
+      `Email: ${email}\n` +
+      (name ? `Name: ${name}\n` : "") +
+      `Source: ${source}\n` +
+      `Time: ${new Date().toISOString()}\n`,
+    html: newSubscriberHtml({ email, name, source }),
+  });
+}
+
+function newSubscriberHtml({
+  email,
+  name,
+  source,
+}: {
+  email: string;
+  name?: string;
+  source: string;
+}) {
+  const safeName = (name ?? "").replace(/[<>&]/g, "");
+  return `<!doctype html>
+<html><body style="font-family:system-ui,sans-serif;background:#1c1916;color:#fafaf9;padding:40px 0;margin:0">
+  <table align="center" style="max-width:520px;margin:0 auto;background:#2a2724;border-radius:12px;padding:32px">
+    <tr><td>
+      <p style="color:#78716c;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 16px">New subscriber</p>
+      <p style="margin:0 0 4px;font-size:18px;font-weight:600">🎉 Someone joined the list</p>
+      <p style="margin:8px 0 0;color:#a8a29e">
+        <a href="mailto:${email}" style="color:#fafaf9;text-decoration:none">${email}</a>
+        ${safeName ? ` · <span style="color:#a8a29e">${safeName}</span>` : ""}
+      </p>
+      <p style="margin:16px 0 0;font-size:11px;color:#78716c">Source: ${source}</p>
+    </td></tr>
+  </table>
+</body></html>`;
+}
+
 export async function sendContactInquiryEmail({
   name,
   email,
