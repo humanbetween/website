@@ -35,13 +35,25 @@ export type ListPromptsArgs = {
 };
 
 export async function getActiveCategoryKeys(): Promise<string[]> {
-  const rows = await db.execute<{ cat: string }>(sql`
-    select distinct unnest(${schema.prompts.categories}) as cat
-    from ${schema.prompts}
-    where ${schema.prompts.deletedAt} is null
-      and ${schema.prompts.isPublished} = true
-  `);
-  return (rows as unknown as Array<{ cat: string }>).map((r) => r.cat);
+  try {
+    const rows = await db
+      .select({ categories: schema.prompts.categories })
+      .from(schema.prompts)
+      .where(
+        and(
+          isNull(schema.prompts.deletedAt),
+          eq(schema.prompts.isPublished, true),
+        ),
+      );
+    const set = new Set<string>();
+    for (const r of rows) {
+      for (const c of r.categories ?? []) set.add(c);
+    }
+    return Array.from(set);
+  } catch (err) {
+    console.error("getActiveCategoryKeys failed", err);
+    return [];
+  }
 }
 
 export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResponse> {

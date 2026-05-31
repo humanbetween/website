@@ -18,16 +18,45 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [banner, promo, hero, access, ctaBanner, activeCategoryKeys] =
-    await Promise.all([
-      getPricingBanner(),
-      getPromoCard(),
-      getHeroContent(),
-      getCurrentAccess(),
-      getHomeCtaBanner(),
-      getActiveCategoryKeys(),
-    ]);
-  const favoriteIds = await getFavoritePromptIds(access.userId);
+  // Settle independently so one failing query doesn't take down the whole page.
+  const settled = await Promise.allSettled([
+    getPricingBanner(),
+    getPromoCard(),
+    getHeroContent(),
+    getCurrentAccess(),
+    getHomeCtaBanner(),
+    getActiveCategoryKeys(),
+  ]);
+  const [
+    bannerRes,
+    promoRes,
+    heroRes,
+    accessRes,
+    ctaBannerRes,
+    activeCategoryKeysRes,
+  ] = settled;
+  const banner =
+    bannerRes.status === "fulfilled" ? bannerRes.value : await getPricingBanner();
+  const promo =
+    promoRes.status === "fulfilled" ? promoRes.value : await getPromoCard();
+  const hero =
+    heroRes.status === "fulfilled" ? heroRes.value : await getHeroContent();
+  const access =
+    accessRes.status === "fulfilled"
+      ? accessRes.value
+      : { userId: null, hasUnlimited: false };
+  const ctaBanner =
+    ctaBannerRes.status === "fulfilled"
+      ? ctaBannerRes.value
+      : await getHomeCtaBanner();
+  const activeCategoryKeys =
+    activeCategoryKeysRes.status === "fulfilled"
+      ? activeCategoryKeysRes.value
+      : [];
+
+  const favoriteIds = access.userId
+    ? await getFavoritePromptIds(access.userId).catch(() => [])
+    : [];
 
   return (
     <>

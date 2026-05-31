@@ -31,11 +31,23 @@ const YEARLY_FEATURES: Array<{ label: string; included: boolean }> = [
 ];
 
 export default async function PricingPage() {
-  const [banner, plans, ctaBanner] = await Promise.all([
+  const settled = await Promise.allSettled([
     getPricingBanner(),
     getPricingPlans(),
     getHomeCtaBanner(),
   ]);
+  const banner =
+    settled[0].status === "fulfilled"
+      ? settled[0].value
+      : await getPricingBanner();
+  const plans =
+    settled[1].status === "fulfilled"
+      ? settled[1].value
+      : await getPricingPlans();
+  const ctaBanner =
+    settled[2].status === "fulfilled"
+      ? settled[2].value
+      : await getHomeCtaBanner();
 
   return (
     <>
