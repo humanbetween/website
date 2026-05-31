@@ -73,6 +73,22 @@ const DEFAULT_HERO: HeroContent = {
     "A growing library of curated prompts for video, image and websites. Built for creators who move fast.",
 };
 
+export type SocialLinks = {
+  x: string;
+  instagram: string;
+  youtube: string;
+  tiktok: string;
+  linkedin: string;
+};
+
+const DEFAULT_SOCIAL: SocialLinks = {
+  x: "",
+  instagram: "",
+  youtube: "",
+  tiktok: "",
+  linkedin: "",
+};
+
 async function getRaw<T>(key: string, fallback: T): Promise<T> {
   try {
     const rows = await db
@@ -102,6 +118,10 @@ export const getPromoCard = cache(async (): Promise<PromoCard> => {
 
 export const getHeroContent = cache(async (): Promise<HeroContent> => {
   return getRaw<HeroContent>("hero_content", DEFAULT_HERO);
+});
+
+export const getSocialLinks = cache(async (): Promise<SocialLinks> => {
+  return getRaw<SocialLinks>("social_links", DEFAULT_SOCIAL);
 });
 
 /**

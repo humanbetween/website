@@ -52,11 +52,23 @@ const heroSchema = z.object({
   }),
 });
 
+const socialSchema = z.object({
+  key: z.literal("social_links"),
+  value: z.object({
+    x: z.string().max(500),
+    instagram: z.string().max(500),
+    youtube: z.string().max(500),
+    tiktok: z.string().max(500),
+    linkedin: z.string().max(500),
+  }),
+});
+
 const bodySchema = z.discriminatedUnion("key", [
   bannerSchema,
   plansSchema,
   promoSchema,
   heroSchema,
+  socialSchema,
 ]);
 
 export async function PUT(request: Request) {
