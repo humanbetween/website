@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
+import { getCurrentAccess } from "@/lib/access";
 import { listPrompts } from "@/lib/prompts/queries";
 import type { SortKey } from "@/lib/prompts/types";
 
 export const dynamic = "force-dynamic";
 
-// Loose validation: the cat filter is a free-form string now (admins can
-// add categories), only used to filter the array column server-side.
 const CAT_RE = /^[A-Z0-9_]{1,40}$/;
 
 export async function GET(request: Request) {
@@ -19,7 +18,15 @@ export async function GET(request: Request) {
   const cursor = searchParams.get("cursor");
 
   try {
-    const data = await listPrompts({ cursor, category, freeOnly, sort, search });
+    const { hasUnlimited } = await getCurrentAccess();
+    const data = await listPrompts({
+      cursor,
+      category,
+      freeOnly,
+      sort,
+      search,
+      hasUnlimited,
+    });
     return NextResponse.json(data);
   } catch (err) {
     console.error("listPrompts failed", err);

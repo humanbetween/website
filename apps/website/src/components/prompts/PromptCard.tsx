@@ -12,13 +12,16 @@ const CARD_ASPECT = "4 / 3";
 export function PromptCard({
   prompt,
   onOpen,
+  hasUnlimited = false,
 }: {
   prompt: PromptListItem;
   onOpen: () => void;
+  hasUnlimited?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   const primaryCategory = prompt.categories[0];
   const categoryLabel = useCategoryLabel(primaryCategory);
+  const accessible = prompt.isFree || hasUnlimited;
 
   async function onCardButtonClick(e: React.MouseEvent) {
     e.stopPropagation();
@@ -69,10 +72,10 @@ export function PromptCard({
         <button
           type="button"
           onClick={onCardButtonClick}
-          aria-label={prompt.isFree ? "Copy prompt" : "Locked — open"}
+          aria-label={accessible ? "Copy prompt" : "Locked — open"}
           className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-foreground/5 border border-border/60 text-[11px] text-muted-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-colors"
         >
-          {prompt.isFree ? (
+          {accessible ? (
             <>
               {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
               {copied ? "Copied" : "Copy"}

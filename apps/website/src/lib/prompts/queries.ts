@@ -27,6 +27,7 @@ export type ListPromptsArgs = {
   freeOnly?: boolean;
   sort?: SortKey;
   search?: string | null;
+  hasUnlimited?: boolean;
 };
 
 export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResponse> {
@@ -111,7 +112,7 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     tools: r.tools,
     popularityCount: r.popularityCount,
     createdAt: r.createdAt.toISOString(),
-    promptText: r.isFree ? r.promptText : null,
+    promptText: r.isFree || args.hasUnlimited ? r.promptText : null,
   }));
 
   return { items, nextCursor };

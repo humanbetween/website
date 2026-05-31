@@ -33,7 +33,13 @@ async function fetchPage({
   return res.json() as Promise<PromptListResponse>;
 }
 
-export function PromptGrid({ promo }: { promo?: PromoCardData }) {
+export function PromptGrid({
+  promo,
+  hasUnlimited = false,
+}: {
+  promo?: PromoCardData;
+  hasUnlimited?: boolean;
+}) {
   const params = useSearchParams();
   const query = new URLSearchParams(
     Object.entries({
@@ -149,7 +155,11 @@ export function PromptGrid({ promo }: { promo?: PromoCardData }) {
         {items.map((p, i) => (
           <Fragment key={p.id}>
             {promoEnabled && i === promoPos && <PromoCard promo={promo!} />}
-            <PromptCard prompt={p} onOpen={() => openAt(i, p.id)} />
+            <PromptCard
+              prompt={p}
+              onOpen={() => openAt(i, p.id)}
+              hasUnlimited={hasUnlimited}
+            />
           </Fragment>
         ))}
         {promoEnabled && promoPos >= items.length && <PromoCard promo={promo!} />}
