@@ -73,7 +73,7 @@ export function PromptFilters() {
   }
 
   return (
-    <div className="sticky top-16 z-40 py-3 backdrop-blur-md bg-background/70 border-b border-border/40">
+    <div className="sticky top-16 z-40 py-3 backdrop-blur-md bg-background/40 border-b border-border/20">
       <div className="container mx-auto max-w-7xl px-5 sm:px-6 flex flex-wrap items-center gap-2">
         <button
           type="button"

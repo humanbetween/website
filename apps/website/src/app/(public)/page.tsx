@@ -31,16 +31,16 @@ export default async function HomePage() {
       <PricingBanner banner={banner} />
 
       <div className="relative">
-        {/* Subtle grid background, fades to transparent toward the bottom */}
+        {/* Subtle grid background — goes deep into the page before fading */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-[1100px] overflow-hidden bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:linear-gradient(to_bottom,black_0%,black_55%,transparent_100%)]"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[2200px] overflow-hidden bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:linear-gradient(to_bottom,black_0%,black_80%,transparent_100%)]"
         />
 
-        <section className="relative overflow-hidden">
+        <section className="relative">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-sky-400/15 via-sky-400/5 to-transparent"
+            className="pointer-events-none absolute inset-x-0 top-0 h-[700px] bg-gradient-to-b from-sky-400/15 via-sky-400/5 to-transparent"
           />
           <div className="relative container mx-auto max-w-4xl px-6 pt-16 md:pt-24 pb-12 text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl leading-[1.05] text-balance font-bold">
