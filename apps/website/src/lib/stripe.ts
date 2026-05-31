@@ -14,6 +14,15 @@ export const stripeConfig = {
 };
 
 export function appUrl(path: string) {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const explicit = process.env.NEXT_PUBLIC_APP_URL;
+  const vercelProd = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const vercelDeploy = process.env.VERCEL_URL;
+  const base = explicit
+    ? explicit
+    : vercelProd
+      ? `https://${vercelProd}`
+      : vercelDeploy
+        ? `https://${vercelDeploy}`
+        : "http://localhost:3000";
   return new URL(path, base).toString();
 }
