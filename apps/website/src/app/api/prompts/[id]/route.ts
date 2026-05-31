@@ -45,6 +45,7 @@ export async function GET(
       tags: prompt.tags,
       tools: prompt.tools,
       popularityCount: prompt.popularityCount,
+      favoriteCount: prompt.favoriteCount,
       createdAt: prompt.createdAt.toISOString(),
       promptText: canAccess ? prompt.promptText : null,
       canAccess,

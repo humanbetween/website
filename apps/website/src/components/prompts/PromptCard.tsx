@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
 import type { PromptListItem } from "@/lib/prompts/types";
 import { useCategoryLabel } from "./CategoriesContext";
+import { FavoriteButton } from "./FavoriteButton";
 
 const CARD_ASPECT = "4 / 3";
 
@@ -13,10 +14,14 @@ export function PromptCard({
   prompt,
   onOpen,
   hasUnlimited = false,
+  isFavorited = false,
+  isSignedIn = false,
 }: {
   prompt: PromptListItem;
   onOpen: () => void;
   hasUnlimited?: boolean;
+  isFavorited?: boolean;
+  isSignedIn?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   const primaryCategory = prompt.categories[0];
@@ -52,12 +57,22 @@ export function PromptCard({
       }}
       className="group flex flex-col rounded-2xl overflow-hidden bg-card/60 border border-border/40 hover:border-border hover:bg-card/90 transition-colors cursor-pointer"
     >
-      <AutoPlayMedia
-        src={prompt.videoUrl}
-        poster={prompt.thumbnailUrl}
-        alt={prompt.title}
-        aspectRatio={CARD_ASPECT}
-      />
+      <div className="relative">
+        <AutoPlayMedia
+          src={prompt.videoUrl}
+          poster={prompt.thumbnailUrl}
+          alt={prompt.title}
+          aspectRatio={CARD_ASPECT}
+        />
+        <div className="absolute top-2 right-2">
+          <FavoriteButton
+            promptId={prompt.id}
+            initialCount={prompt.favoriteCount}
+            initialFavorited={isFavorited}
+            isSignedIn={isSignedIn}
+          />
+        </div>
+      </div>
       <div className="px-3 py-3 flex items-center justify-between gap-2">
         <div className="min-w-0">
           <h3 className="text-sm font-medium truncate leading-tight">

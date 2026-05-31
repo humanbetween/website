@@ -48,6 +48,7 @@ export type PromptListItem = {
   tags: string[];
   tools: string[];
   popularityCount: number;
+  favoriteCount: number;
   createdAt: string;
   // Only sent when is_free === true. For paid prompts, fetched on demand
   // by the dialog through /api/prompts/[id], which applies access gating.
@@ -70,6 +71,7 @@ export type PromptRow = {
   tags: string[];
   tools: string[];
   popularityCount: number;
+  favoriteCount: number;
   createdAt: Date;
   promptText: string;
 };
@@ -87,6 +89,7 @@ export function rowToListItem(p: PromptRow): PromptListItem {
     tags: p.tags,
     tools: p.tools,
     popularityCount: p.popularityCount,
+    favoriteCount: p.favoriteCount,
     createdAt: p.createdAt.toISOString(),
     promptText: p.isFree ? p.promptText : null,
   };

@@ -124,6 +124,7 @@ export const prompts = pgTable(
       .notNull()
       .default(sql`'{}'::text[]`),
     popularityCount: integer("popularity_count").notNull().default(0),
+    favoriteCount: integer("favorite_count").notNull().default(0),
     displayOrder: integer("display_order").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -166,6 +167,24 @@ export const purchases = pgTable(
     uniqueIndex("purchases_user_prompt_unique")
       .on(t.userId, t.promptId)
       .where(sql`${t.promptId} IS NOT NULL`),
+  ],
+);
+
+export const favorites = pgTable(
+  "favorites",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    promptId: uuid("prompt_id")
+      .notNull()
+      .references(() => prompts.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("favorites_user_prompt_pk").on(t.userId, t.promptId),
+    index("favorites_user_id_created_at").on(t.userId, t.createdAt.desc()),
+    index("favorites_prompt_id").on(t.promptId),
   ],
 );
 

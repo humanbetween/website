@@ -36,10 +36,15 @@ async function fetchPage({
 export function PromptGrid({
   promo,
   hasUnlimited = false,
+  favoriteIds = [],
+  isSignedIn = false,
 }: {
   promo?: PromoCardData;
   hasUnlimited?: boolean;
+  favoriteIds?: string[];
+  isSignedIn?: boolean;
 }) {
+  const favoriteSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
   const params = useSearchParams();
   const query = new URLSearchParams(
     Object.entries({
@@ -159,6 +164,8 @@ export function PromptGrid({
               prompt={p}
               onOpen={() => openAt(i, p.id)}
               hasUnlimited={hasUnlimited}
+              isFavorited={favoriteSet.has(p.id)}
+              isSignedIn={isSignedIn}
             />
           </Fragment>
         ))}

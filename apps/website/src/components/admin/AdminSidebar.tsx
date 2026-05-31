@@ -8,6 +8,7 @@ import {
   ShoppingBag,
   Users,
   LineChart,
+  Heart,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -45,6 +46,12 @@ const NAV: NavItem[] = [
     label: "Customers",
     icon: Users,
     match: (p) => p.startsWith("/admin/customers"),
+  },
+  {
+    href: "/admin/favorites",
+    label: "Favorites",
+    icon: Heart,
+    match: (p) => p.startsWith("/admin/favorites"),
   },
   {
     href: "/admin/analytics",

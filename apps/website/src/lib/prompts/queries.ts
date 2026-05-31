@@ -111,6 +111,7 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     tags: r.tags,
     tools: r.tools,
     popularityCount: r.popularityCount,
+    favoriteCount: r.favoriteCount,
     createdAt: r.createdAt.toISOString(),
     promptText: r.isFree || args.hasUnlimited ? r.promptText : null,
   }));

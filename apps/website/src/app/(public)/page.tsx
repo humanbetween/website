@@ -5,6 +5,7 @@ import { PromptFilters } from "@/components/prompts/PromptFilters";
 import { PromptGrid } from "@/components/prompts/PromptGrid";
 import { PricingBanner } from "@/components/site/PricingBanner";
 import { getCurrentAccess } from "@/lib/access";
+import { getFavoritePromptIds } from "@/lib/favorites";
 import {
   getPricingBanner,
   getPromoCard,
@@ -20,6 +21,7 @@ export default async function HomePage() {
     getHeroContent(),
     getCurrentAccess(),
   ]);
+  const favoriteIds = await getFavoritePromptIds(access.userId);
 
   return (
     <>
@@ -65,7 +67,12 @@ export default async function HomePage() {
         className="container mx-auto max-w-7xl px-6 pt-6 pb-20"
       >
         <Suspense fallback={null}>
-          <PromptGrid promo={promo} hasUnlimited={access.hasUnlimited} />
+          <PromptGrid
+            promo={promo}
+            hasUnlimited={access.hasUnlimited}
+            favoriteIds={favoriteIds}
+            isSignedIn={!!access.userId}
+          />
         </Suspense>
       </section>
     </>
