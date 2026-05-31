@@ -31,18 +31,17 @@ export default async function HomePage() {
       <PricingBanner banner={banner} />
 
       <div className="relative">
-        {/* Background: subtle grid + extended gradient */}
+        {/* Subtle grid background, fades to transparent toward the bottom */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-[1100px] overflow-hidden"
-        >
-          {/* Soft elliptical gradient from top */}
-          <div className="absolute inset-x-0 top-0 h-full bg-[radial-gradient(ellipse_60%_70%_at_50%_0%,rgba(56,189,248,0.22),rgba(34,211,238,0.10)_35%,rgba(52,211,153,0.06)_55%,transparent_80%)]" />
-          {/* Subtle grid at ~10% opacity, fades out with the gradient */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:linear-gradient(to_bottom,black_0%,black_55%,transparent_100%)]" />
-        </div>
+          className="pointer-events-none absolute inset-x-0 top-0 h-[1100px] overflow-hidden bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:linear-gradient(to_bottom,black_0%,black_55%,transparent_100%)]"
+        />
 
-        <section className="relative">
+        <section className="relative overflow-hidden">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-gradient-to-b from-sky-400/15 via-sky-400/5 to-transparent"
+          />
           <div className="relative container mx-auto max-w-4xl px-6 pt-16 md:pt-24 pb-12 text-center">
             <h1 className="text-3xl sm:text-4xl md:text-5xl leading-[1.05] text-balance font-bold">
               <span className="uppercase">{hero.titleLine1}</span>
