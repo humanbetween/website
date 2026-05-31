@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 type Props = {
@@ -11,7 +10,6 @@ type Props = {
 };
 
 export function PricingButtons({ tier, cta, highlight }: Props) {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,10 +22,6 @@ export function PricingButtons({ tier, cta, highlight }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: "subscription", tier }),
       });
-      if (res.status === 401) {
-        router.push(`/auth/sign-in?redirect=/pricing`);
-        return;
-      }
       const body = (await res.json()) as { url?: string; error?: string };
       if (body.url) {
         window.location.href = body.url;

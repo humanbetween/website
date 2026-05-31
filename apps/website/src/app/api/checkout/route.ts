@@ -22,9 +22,7 @@ const bodySchema = z.discriminatedUnion("mode", [
 
 export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) {
-    return NextResponse.json({ error: "Sign in first" }, { status: 401 });
-  }
+  const user = session?.user ?? null;
 
   const body = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(body);
@@ -32,25 +30,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
 
-  let customerId = (
-    await db
-      .select({ id: schema.profiles.stripeCustomerId })
-      .from(schema.profiles)
-      .where(eq(schema.profiles.userId, session.user.id))
-      .limit(1)
-  )[0]?.id;
+  let customerId: string | undefined;
+  if (user) {
+    customerId =
+      (
+        await db
+          .select({ id: schema.profiles.stripeCustomerId })
+          .from(schema.profiles)
+          .where(eq(schema.profiles.userId, user.id))
+          .limit(1)
+      )[0]?.id ?? undefined;
 
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: session.user.email,
-      name: session.user.name ?? undefined,
-      metadata: { userId: session.user.id },
-    });
-    customerId = customer.id;
-    await db
-      .update(schema.profiles)
-      .set({ stripeCustomerId: customerId, updatedAt: new Date() })
-      .where(eq(schema.profiles.userId, session.user.id));
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.name ?? undefined,
+        metadata: { userId: user.id },
+      });
+      customerId = customer.id;
+      await db
+        .update(schema.profiles)
+        .set({ stripeCustomerId: customerId, updatedAt: new Date() })
+        .where(eq(schema.profiles.userId, user.id));
+    }
   }
 
   try {
@@ -65,15 +67,27 @@ export async function POST(request: Request) {
           { status: 500 },
         );
       }
+      const isLifetime = parsed.data.tier === "lifetime";
       const checkout = await stripe.checkout.sessions.create({
-        mode: parsed.data.tier === "lifetime" ? "payment" : "subscription",
-        customer: customerId,
+        mode: isLifetime ? "payment" : "subscription",
+        ...(customerId
+          ? { customer: customerId }
+          : isLifetime
+            ? { customer_creation: "always" }
+            : {}),
         line_items: [{ price: priceId, quantity: 1 }],
-        success_url: appUrl("/account?checkout=success"),
+        success_url: appUrl("/checkout/welcome"),
         cancel_url: appUrl("/pricing?checkout=cancel"),
-        metadata: { userId: session.user.id, tier: parsed.data.tier },
+        metadata: {
+          userId: user?.id ?? "",
+          tier: parsed.data.tier,
+        },
       });
       return NextResponse.json({ url: checkout.url });
+    }
+
+    if (!user || !customerId) {
+      return NextResponse.json({ error: "Sign in first" }, { status: 401 });
     }
 
     const prompt = await getPromptById(parsed.data.promptId);
@@ -109,7 +123,7 @@ export async function POST(request: Request) {
       success_url: appUrl(`/prompt/${prompt.id}?checkout=success`),
       cancel_url: appUrl(`/prompt/${prompt.id}?checkout=cancel`),
       metadata: {
-        userId: session.user.id,
+        userId: user.id,
         promptId: prompt.id,
         mode: "one_time",
       },

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import type Stripe from "stripe";
+import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
-import { stripe, stripeConfig } from "@/lib/stripe";
+import { appUrl, stripe, stripeConfig } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -48,8 +49,20 @@ export async function POST(request: Request) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const userId = session.metadata?.userId;
-  if (!userId) return;
+  let userId = session.metadata?.userId || null;
+  const fromAnonymous = !userId;
+
+  if (!userId) {
+    const email = session.customer_details?.email ?? session.customer_email;
+    if (!email) {
+      console.error("checkout.session.completed: no userId and no email");
+      return;
+    }
+    userId = await findOrCreateUserByEmail(
+      email,
+      session.customer_details?.name ?? null,
+    );
+  }
 
   if (session.mode === "subscription" && session.subscription) {
     const sub = await stripe.subscriptions.retrieve(session.subscription as string);
@@ -70,10 +83,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       type: "subscription_renewal",
       amountCents: session.amount_total ?? 0,
     });
-    return;
-  }
-
-  if (session.mode === "payment") {
+  } else if (session.mode === "payment") {
     const promptId = session.metadata?.promptId ?? null;
     const tier = session.metadata?.tier;
     if (tier === "lifetime") {
@@ -93,9 +103,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         type: "lifetime",
         amountCents: session.amount_total ?? 0,
       });
-      return;
-    }
-    if (promptId) {
+    } else if (promptId) {
       await db
         .insert(schema.purchases)
         .values({
@@ -108,6 +116,50 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         .onConflictDoNothing();
     }
   }
+
+  if (fromAnonymous) {
+    const email = session.customer_details?.email ?? session.customer_email;
+    if (email) {
+      try {
+        await auth.api.signInMagicLink({
+          body: {
+            email,
+            callbackURL: appUrl("/account?welcome=1"),
+          },
+          headers: new Headers(),
+        });
+      } catch (err) {
+        console.error("magic link send failed for", email, err);
+      }
+    }
+  }
+}
+
+async function findOrCreateUserByEmail(
+  email: string,
+  name: string | null,
+): Promise<string> {
+  const existing = (
+    await db
+      .select({ id: schema.users.id })
+      .from(schema.users)
+      .where(eq(schema.users.email, email))
+      .limit(1)
+  )[0];
+  if (existing) return existing.id;
+
+  const id = crypto.randomUUID();
+  await db.insert(schema.users).values({
+    id,
+    email,
+    emailVerified: true,
+    name,
+  });
+  await db
+    .insert(schema.profiles)
+    .values({ userId: id })
+    .onConflictDoNothing();
+  return id;
 }
 
 async function handleSubscriptionChange(sub: Stripe.Subscription) {
