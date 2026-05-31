@@ -28,7 +28,7 @@ export function Header({ headerCta }: { headerCta?: HeaderCtaProp }) {
           : "bg-transparent border-b border-transparent")
       }
     >
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 h-16 relative flex items-center justify-between gap-3">
+      <div className="container mx-auto max-w-[1440px] px-4 sm:px-6 h-16 relative flex items-center justify-between gap-3">
         <Logo />
 
         <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-sm text-muted-foreground">
@@ -79,7 +79,7 @@ export function Header({ headerCta }: { headerCta?: HeaderCtaProp }) {
 
       {open && (
         <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-md">
-          <nav className="container mx-auto max-w-7xl px-4 py-4 flex flex-col gap-1 text-sm">
+          <nav className="container mx-auto max-w-[1440px] px-4 py-4 flex flex-col gap-1 text-sm">
             <Link href="/" onClick={close} className="px-3 py-3 rounded-lg hover:bg-foreground/5">
               Library
             </Link>

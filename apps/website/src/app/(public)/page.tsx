@@ -107,7 +107,7 @@ export default async function HomePage() {
 
       <section
         id="library"
-        className="container mx-auto max-w-7xl px-6 pt-6 pb-12"
+        className="container mx-auto max-w-[1440px] px-6 pt-6 pb-12"
       >
         <Suspense fallback={null}>
           <PromptGrid

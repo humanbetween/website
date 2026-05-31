@@ -9,7 +9,7 @@ export function HomeCtaBanner({ banner }: { banner: Data }) {
   const isExternal = /^https?:\/\//i.test(banner.ctaUrl);
 
   return (
-    <section className="container mx-auto max-w-7xl px-5 sm:px-6 pb-16">
+    <section className="container mx-auto max-w-[1440px] px-5 sm:px-6 pb-16">
       <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-gradient-to-br from-sky-500/10 via-cyan-500/5 to-emerald-500/10">
         <div
           aria-hidden

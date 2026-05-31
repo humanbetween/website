@@ -7,7 +7,7 @@ export async function Footer() {
 
   return (
     <footer className="mt-20 border-t border-border/50">
-      <div className="container mx-auto max-w-7xl px-6 py-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-xs text-muted-foreground">
+      <div className="container mx-auto max-w-[1440px] px-6 py-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between text-xs text-muted-foreground">
         <p>© {new Date().getFullYear()} Human Between. All rights reserved.</p>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
           <nav className="flex flex-wrap items-center gap-x-6 gap-y-2">

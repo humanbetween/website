@@ -89,7 +89,7 @@ export function PromptFilters({
           : "bg-transparent border-b border-transparent")
       }
     >
-      <div className="container mx-auto max-w-7xl px-5 sm:px-6 flex flex-wrap items-center gap-2">
+      <div className="container mx-auto max-w-[1440px] px-5 sm:px-6 flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={() => setCategory(null)}
