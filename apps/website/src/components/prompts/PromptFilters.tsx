@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { Heart, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { SortKey } from "@/lib/prompts/types";
 import { authClient } from "@/lib/auth-client";
+import { useGlassTrigger } from "@/lib/use-glass-trigger";
 import { useCategories } from "./CategoriesContext";
 
 export function PromptFilters({
@@ -20,16 +21,7 @@ export function PromptFilters({
   const activeSet = new Set(activeCategoryKeys);
   const { data: session } = authClient.useSession();
   const signedIn = !!session?.user;
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 80);
-    }
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const pinned = useGlassTrigger();
 
   const activeCat = params.get("cat");
   const freeOnly = params.get("free") === "1";
@@ -89,9 +81,10 @@ export function PromptFilters({
 
   return (
     <div
+      data-filter-bar
       className={
         "sticky top-16 z-40 py-3 transition-colors duration-200 " +
-        (scrolled
+        (pinned
           ? "backdrop-blur-md bg-background/70 border-b border-border/30"
           : "bg-transparent border-b border-transparent")
       }

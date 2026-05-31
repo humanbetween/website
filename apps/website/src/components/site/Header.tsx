@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X, GraduationCap, User } from "lucide-react";
 import { Logo } from "./Logo";
 import { authClient } from "@/lib/auth-client";
+import { useGlassTrigger } from "@/lib/use-glass-trigger";
 
 type HeaderCtaProp = { label: string; url: string };
 
@@ -16,9 +17,17 @@ export function Header({ headerCta }: { headerCta?: HeaderCtaProp }) {
   const accountHref = signedIn ? "/account" : "/auth/sign-in";
   const accountLabel = signedIn ? "Account" : "Sign in";
   const showCta = !!(headerCta?.url && headerCta.label);
+  const glass = useGlassTrigger();
 
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md bg-background/70 border-b border-border/50">
+    <header
+      className={
+        "sticky top-0 z-50 transition-colors duration-200 " +
+        (glass || open
+          ? "backdrop-blur-md bg-background/70 border-b border-border/50"
+          : "bg-transparent border-b border-transparent")
+      }
+    >
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 h-16 relative flex items-center justify-between gap-3">
         <Logo />
 
