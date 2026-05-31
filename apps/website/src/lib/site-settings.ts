@@ -82,6 +82,7 @@ export type HomeCtaBanner = {
   ctaUrl: string;
   imageUrl: string;
   videoUrl: string;
+  newsletterMode: boolean;
 };
 
 const DEFAULT_HOME_CTA: HomeCtaBanner = {
@@ -94,6 +95,7 @@ const DEFAULT_HOME_CTA: HomeCtaBanner = {
   ctaUrl: "/pricing",
   imageUrl: "",
   videoUrl: "",
+  newsletterMode: false,
 };
 
 export type HeaderCta = {

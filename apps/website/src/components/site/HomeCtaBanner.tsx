@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { HomeCtaBanner as Data } from "@/lib/site-settings";
+import { InlineNewsletterForm } from "./InlineNewsletterForm";
 
 export function HomeCtaBanner({ banner }: { banner: Data }) {
   if (!banner.active) return null;
@@ -35,7 +36,9 @@ export function HomeCtaBanner({ banner }: { banner: Data }) {
               </p>
             )}
             <div className="mt-2">
-              {isExternal ? (
+              {banner.newsletterMode ? (
+                <InlineNewsletterForm ctaLabel={banner.ctaLabel} />
+              ) : isExternal ? (
                 <a
                   href={banner.ctaUrl}
                   target="_blank"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useLazyAutoplay } from "@/lib/lazy-autoplay";
 
 const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif)(\?|$)/i;
@@ -48,6 +48,17 @@ export function AutoPlayMedia({
       videoRef.current.pause();
     }
   });
+
+  // When the src changes (e.g. arrow-key navigation in the dialog) the
+  // <video> element is reused — IntersectionObserver doesn't fire again
+  // because nothing entered the viewport, so we kickstart playback here.
+  useEffect(() => {
+    if (isImage || !videoRef.current) return;
+    const v = videoRef.current;
+    v.load();
+    const p = v.play();
+    if (p && typeof p.catch === "function") p.catch(() => {});
+  }, [src, isImage]);
 
   if (fit) {
     return (

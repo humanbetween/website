@@ -74,6 +74,7 @@ export function HomeCtaBannerForm({ initial }: { initial: HomeCtaBanner }) {
             ctaUrl: values.ctaUrl.trim(),
             imageUrl: values.imageUrl.trim(),
             videoUrl: values.videoUrl.trim(),
+            newsletterMode: values.newsletterMode,
           },
         }),
       });
@@ -99,6 +100,21 @@ export function HomeCtaBannerForm({ initial }: { initial: HomeCtaBanner }) {
           className="h-4 w-4 rounded border-border/60 accent-foreground"
         />
         Show this banner at the bottom of the home page
+      </label>
+
+      <label className="inline-flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={values.newsletterMode}
+          onChange={(e) => set("newsletterMode", e.target.checked)}
+          className="mt-0.5 h-4 w-4 rounded border-border/60 accent-foreground"
+        />
+        <span>
+          Newsletter mode — replace the CTA button with an email signup form.
+          When on, the "Button URL" is ignored and visitors enter their email
+          + check a consent box. They're saved to the newsletter_subscribers
+          table.
+        </span>
       </label>
 
       <Field label="Eyebrow" hint="Small tag above the title. Emoji + caps work well.">

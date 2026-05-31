@@ -71,9 +71,10 @@ const homeCtaSchema = z.object({
     title: z.string().min(1).max(160),
     description: z.string().max(500),
     ctaLabel: z.string().min(1).max(40),
-    ctaUrl: z.string().min(1).max(500),
+    ctaUrl: z.string().max(500),
     imageUrl: z.string().max(500),
     videoUrl: z.string().max(500),
+    newsletterMode: z.boolean(),
   }),
 });
 

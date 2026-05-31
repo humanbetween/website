@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Lock, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
@@ -23,6 +24,7 @@ export function PromptCard({
   isFavorited?: boolean;
   isSignedIn?: boolean;
 }) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const primaryCategory = prompt.categories[0];
   const categoryLabel = useCategoryLabel(primaryCategory);
@@ -30,6 +32,10 @@ export function PromptCard({
 
   async function onCardButtonClick(e: React.MouseEvent) {
     e.stopPropagation();
+    if (!accessible) {
+      router.push("/pricing");
+      return;
+    }
     if (prompt.promptText) {
       try {
         await navigator.clipboard.writeText(prompt.promptText);
