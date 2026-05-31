@@ -2,6 +2,7 @@ import { Check, X } from "lucide-react";
 import { getPricingBanner, getPricingPlans } from "@/lib/site-settings";
 import { PricingBanner } from "@/components/site/PricingBanner";
 import { PricingButtons } from "./PricingButtons";
+import { ContactInquiry } from "./ContactInquiry";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +80,8 @@ export default async function PricingPage() {
           Stripe handles every transaction. No card details ever touch our
           servers.
         </p>
+
+        <ContactInquiry />
       </div>
     </>
   );
