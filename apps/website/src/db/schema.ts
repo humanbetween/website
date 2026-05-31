@@ -124,6 +124,7 @@ export const prompts = pgTable(
       .notNull()
       .default(sql`'{}'::text[]`),
     popularityCount: integer("popularity_count").notNull().default(0),
+    displayOrder: integer("display_order").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
@@ -136,6 +137,9 @@ export const prompts = pgTable(
       .where(sql`${t.deletedAt} IS NULL`),
     index("prompts_created_at")
       .on(t.createdAt.desc())
+      .where(sql`${t.deletedAt} IS NULL`),
+    index("prompts_display_order")
+      .on(t.displayOrder.asc(), t.createdAt.desc())
       .where(sql`${t.deletedAt} IS NULL`),
   ],
 );

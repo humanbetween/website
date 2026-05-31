@@ -1,0 +1,2 @@
+ALTER TABLE "prompts" ADD COLUMN "display_order" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+CREATE INDEX "prompts_display_order" ON "prompts" USING btree ("display_order","created_at" DESC NULLS LAST) WHERE "prompts"."deleted_at" IS NULL;

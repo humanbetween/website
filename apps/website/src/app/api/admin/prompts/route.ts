@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { isNull, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
 import { db, schema } from "@/lib/db";
@@ -23,6 +24,14 @@ export async function POST(request: Request) {
   }
 
   try {
+    const minRow = (
+      await db
+        .select({ min: sql<number>`coalesce(min(${schema.prompts.displayOrder}), 0)` })
+        .from(schema.prompts)
+        .where(isNull(schema.prompts.deletedAt))
+    )[0];
+    const displayOrder = (minRow?.min ?? 0) - 1;
+
     const [row] = await db
       .insert(schema.prompts)
       .values({
@@ -37,6 +46,7 @@ export async function POST(request: Request) {
         categories: parsed.data.categories,
         tags: parsed.data.tags,
         tools: parsed.data.tools,
+        displayOrder,
       })
       .returning({ id: schema.prompts.id });
     return NextResponse.json({ id: row?.id });

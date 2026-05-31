@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, ilike, isNull, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, ilike, isNull, lt, or, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import type { Category, PromptListItem, PromptListResponse, SortKey } from "./types";
 
@@ -70,7 +70,7 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
   const order =
     sort === "popular"
       ? [desc(schema.prompts.popularityCount), desc(schema.prompts.createdAt)]
-      : [desc(schema.prompts.createdAt)];
+      : [asc(schema.prompts.displayOrder), desc(schema.prompts.createdAt)];
 
   const rows = await db
     .select()
