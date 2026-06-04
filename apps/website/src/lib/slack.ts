@@ -63,7 +63,9 @@ export async function postNewSubscriberToSlack({
   name?: string;
   source: string;
 }) {
-  const url = process.env.SLACK_CONTACT_WEBHOOK_URL;
+  // Dedicated subscribers channel — intentionally separate from the
+  // contact-inquiry channel (SLACK_CONTACT_WEBHOOK_URL).
+  const url = process.env.SLACK_SUBSCRIBERS_WEBHOOK_URL;
   if (!url) return;
 
   const fields: SlackBlock[] = [
