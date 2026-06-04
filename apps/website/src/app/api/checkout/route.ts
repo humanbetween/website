@@ -71,7 +71,6 @@ export async function POST(request: Request) {
         mode: "subscription",
         ...(customerId ? { customer: customerId } : {}),
         line_items: [{ price: priceId, quantity: 1 }],
-        consent_collection: { promotions: "auto" },
         success_url: appUrl("/checkout/welcome"),
         cancel_url: appUrl("/pricing?checkout=cancel"),
         metadata: {
