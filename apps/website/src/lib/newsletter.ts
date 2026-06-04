@@ -5,6 +5,7 @@ import {
   sendNewSubscriberEmail,
   sendWelcomeLeadEmail,
 } from "@/lib/resend";
+import { postNewSubscriberToSlack } from "@/lib/slack";
 
 export type NewsletterSource = "signup" | "checkout" | "footer" | "unknown";
 
@@ -46,6 +47,9 @@ export async function subscribeToNewsletter({
     }),
     sendWelcomeLeadEmail({ to: normalized }).catch((err) => {
       console.error("welcome lead email failed", err);
+    }),
+    postNewSubscriberToSlack({ email: normalized, name, source }).catch((err) => {
+      console.error("subscriber slack notif failed", err);
     }),
   ]);
 
