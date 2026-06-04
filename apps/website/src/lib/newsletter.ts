@@ -1,6 +1,10 @@
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
-import { resend, sendNewSubscriberEmail } from "@/lib/resend";
+import {
+  resend,
+  sendNewSubscriberEmail,
+  sendWelcomeLeadEmail,
+} from "@/lib/resend";
 
 export type NewsletterSource = "signup" | "checkout" | "footer" | "unknown";
 
@@ -39,6 +43,9 @@ export async function subscribeToNewsletter({
     }),
     sendNewSubscriberEmail({ email: normalized, name, source }).catch((err) => {
       console.error("new subscriber email failed", err);
+    }),
+    sendWelcomeLeadEmail({ to: normalized }).catch((err) => {
+      console.error("welcome lead email failed", err);
     }),
   ]);
 

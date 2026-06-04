@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type Stripe from "stripe";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
 import { subscribeToNewsletter } from "@/lib/newsletter";
+import { sendWelcomeCustomerEmail } from "@/lib/resend";
 import { appUrl, stripe, stripeConfig } from "@/lib/stripe";
 
 export const dynamic = "force-dynamic";
@@ -86,6 +87,26 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       type: "subscription_renewal",
       amountCents: session.amount_total ?? 0,
     });
+
+    // Atomically claim the welcome email so retries / invoice events can't
+    // double-send: only the update that flips a null timestamp wins.
+    const claimed = await db
+      .update(schema.profiles)
+      .set({ welcomeEmailSentAt: new Date() })
+      .where(
+        and(
+          eq(schema.profiles.userId, userId),
+          isNull(schema.profiles.welcomeEmailSentAt),
+        ),
+      )
+      .returning({ userId: schema.profiles.userId });
+    const welcomeEmail =
+      session.customer_details?.email ?? session.customer_email;
+    if (claimed.length > 0 && welcomeEmail) {
+      await sendWelcomeCustomerEmail({ to: welcomeEmail, tier }).catch((err) =>
+        console.error("welcome customer email failed", err),
+      );
+    }
   } else if (session.mode === "payment") {
     const promptId = session.metadata?.promptId ?? null;
     if (promptId) {

@@ -85,6 +85,7 @@ export const profiles = pgTable("profiles", {
   subscriptionCurrentPeriodEnd: timestamp("subscription_current_period_end", {
     withTimezone: true,
   }),
+  welcomeEmailSentAt: timestamp("welcome_email_sent_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
