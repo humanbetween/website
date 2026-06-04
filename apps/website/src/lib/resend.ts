@@ -37,7 +37,7 @@ export async function sendWelcomeLeadEmail({ to }: { to: string }) {
     to,
     subject: "Welcome to Human Prompts — you just made a great call",
     text:
-      `Welcome in — you just made a great call.\n\n` +
+      `Welcome in — you just made a great call. \u{1F389}\n\n` +
       `Joining Human Prompts is a decision you won't regret. We craft the best prompt for every kind of visual you could dream up — so you skip the guesswork and go straight to results that look incredible.\n\n` +
       `And this is just the start: free prompts are dropping soon, exclusively for the community. Keep an eye on your inbox.\n\n` +
       `Can't wait to see what you make.\n\n` +
@@ -45,7 +45,7 @@ export async function sendWelcomeLeadEmail({ to }: { to: string }) {
       `— Human Prompts · humanprompts.ai`,
     html: brandEmailShell({
       eyebrow: "Welcome",
-      heading: "You just made a great call.",
+      heading: "You just made a great call. \u{1F389}",
       bodyHtml:
         "Joining Human Prompts is a decision you won't regret. We craft <strong style=\"color:#fafaf9\">the best prompt for every kind of visual</strong> you could dream up — so you skip the guesswork and go straight to results that look incredible.<br><br>And this is just the start: <strong style=\"color:#fafaf9\">free prompts are dropping soon</strong>, exclusively for the community. Keep an eye on your inbox — we can't wait to see what you make.",
       ctaLabel: "Explore the library →",
