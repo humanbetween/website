@@ -12,6 +12,8 @@ import {
 } from "@/lib/prompts/schema";
 import {
   DEFAULT_CATEGORIES,
+  topLevel,
+  subsOf,
   type PromptCategory,
 } from "@/lib/prompts/types";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
@@ -67,6 +69,40 @@ export function PromptForm({ initial, mode }: Props) {
       );
       if (added) onChange([...currentSelection, added.key]);
       toast.success(`Added category "${label.trim()}"`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Add failed");
+    } finally {
+      setAddingCategory(false);
+    }
+  }
+
+  async function addSubcategoryInline(
+    parentKey: string,
+    currentSelection: string[],
+    onChange: (next: string[]) => void,
+  ) {
+    const label = window.prompt("New subcategory name");
+    if (!label || !label.trim()) return;
+    setAddingCategory(true);
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ label: label.trim(), parent: parentKey }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error ?? "Add failed");
+      }
+      const data = (await res.json()) as { categories: PromptCategory[] };
+      setAvailableCategories(data.categories);
+      const added = data.categories.find(
+        (c) => !availableCategories.some((existing) => existing.key === c.key),
+      );
+      // Selecting a sub implies its parent.
+      if (added)
+        onChange([...new Set([...currentSelection, parentKey, added.key])]);
+      toast.success(`Added subcategory "${label.trim()}"`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Add failed");
     } finally {
@@ -362,46 +398,97 @@ export function PromptForm({ initial, mode }: Props) {
         <Controller
           control={control}
           name="categories"
-          render={({ field }) => (
-            <div className="flex flex-wrap gap-2">
-              {availableCategories.map((c) => {
-                const on = field.value.includes(c.key);
-                return (
-                  <button
-                    key={c.key}
-                    type="button"
-                    onClick={() =>
-                      field.onChange(
-                        on
-                          ? field.value.filter((x: string) => x !== c.key)
-                          : [...field.value, c.key],
-                      )
-                    }
-                    className={
-                      on
-                        ? "px-3 py-1.5 rounded-full text-xs bg-foreground text-background"
-                        : "px-3 py-1.5 rounded-full text-xs bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground"
-                    }
-                  >
-                    {c.label}
-                  </button>
+          render={({ field }) => {
+            const value: string[] = field.value;
+            const toggleParent = (key: string) => {
+              if (value.includes(key)) {
+                const subKeys = subsOf(availableCategories, key).map((s) => s.key);
+                field.onChange(
+                  value.filter((x) => x !== key && !subKeys.includes(x)),
                 );
-              })}
-              <button
-                type="button"
-                onClick={() => addCategoryInline(field.value, field.onChange)}
-                disabled={addingCategory}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs bg-card/40 border border-dashed border-border/60 text-muted-foreground hover:text-foreground hover:border-border disabled:opacity-50"
-              >
-                {addingCategory ? (
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                ) : (
-                  <Plus className="h-3 w-3" />
+              } else {
+                field.onChange([...value, key]);
+              }
+            };
+            const toggleSub = (subKey: string, parentKey: string) => {
+              if (value.includes(subKey)) {
+                field.onChange(value.filter((x) => x !== subKey));
+              } else {
+                field.onChange([...new Set([...value, parentKey, subKey])]);
+              }
+            };
+            const parents = topLevel(availableCategories);
+            const selectedParents = parents.filter((p) => value.includes(p.key));
+            return (
+              <div className="flex flex-col gap-2">
+                {/* Row 1: top-level categories, horizontal like before */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {parents.map((parent) => (
+                    <button
+                      key={parent.key}
+                      type="button"
+                      onClick={() => toggleParent(parent.key)}
+                      className={catChip(value.includes(parent.key))}
+                    >
+                      {parent.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addCategoryInline(value, field.onChange)}
+                    disabled={addingCategory}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs bg-card/40 border border-dashed border-border/60 text-muted-foreground hover:text-foreground hover:border-border disabled:opacity-50"
+                  >
+                    {addingCategory ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <Plus className="h-3 w-3" />
+                    )}
+                    Add category
+                  </button>
+                </div>
+
+                {/* Row 2: subcategories of the selected parents, horizontal */}
+                {selectedParents.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {selectedParents.map((parent) => (
+                      <div
+                        key={parent.key}
+                        className="inline-flex flex-wrap items-center gap-1.5"
+                      >
+                        {subsOf(availableCategories, parent.key).map((sub) => (
+                          <button
+                            key={sub.key}
+                            type="button"
+                            onClick={() => toggleSub(sub.key, parent.key)}
+                            className={catChip(value.includes(sub.key)) + " text-[11px]"}
+                          >
+                            {sub.label}
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            addSubcategoryInline(parent.key, value, field.onChange)
+                          }
+                          disabled={addingCategory}
+                          title={`Add subcategory under ${parent.label}`}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] bg-card/40 border border-dashed border-border/60 text-muted-foreground hover:text-foreground hover:border-border disabled:opacity-50"
+                        >
+                          {addingCategory ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Plus className="h-3 w-3" />
+                          )}
+                          Add new
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
-                Add new
-              </button>
-            </div>
-          )}
+              </div>
+            );
+          }}
         />
       </Field>
 
@@ -448,6 +535,12 @@ export function PromptForm({ initial, mode }: Props) {
 
 const inputCls =
   "w-full px-3 py-2 rounded-lg bg-input/40 border border-border/60 text-sm focus:outline-none focus:border-foreground/40";
+
+function catChip(on: boolean) {
+  return on
+    ? "px-3 py-1.5 rounded-full text-xs bg-foreground text-background"
+    : "px-3 py-1.5 rounded-full text-xs bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground";
+}
 
 function Field({
   label,

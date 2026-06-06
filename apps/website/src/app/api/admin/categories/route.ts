@@ -3,12 +3,15 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
-import { addPromptCategory } from "@/lib/site-settings";
+import { addPromptCategory, addPromptSubcategory } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
 
+const KEY_RE = /^[A-Z0-9_]{1,40}$/;
 const bodySchema = z.object({
   label: z.string().min(1).max(40),
+  // When set, create a subcategory under this existing top-level category.
+  parent: z.string().regex(KEY_RE).optional(),
 });
 
 export async function POST(request: Request) {
@@ -27,10 +30,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const categories = await addPromptCategory(parsed.data.label);
+    const categories = parsed.data.parent
+      ? await addPromptSubcategory(parsed.data.parent, parsed.data.label)
+      : await addPromptCategory(parsed.data.label);
     return NextResponse.json({ categories });
   } catch (err) {
-    console.error("addPromptCategory failed", err);
-    return NextResponse.json({ error: "Add failed" }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Add failed";
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

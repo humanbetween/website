@@ -24,6 +24,8 @@ function decodeCursor(raw: string | null): Cursor | null {
 export type ListPromptsArgs = {
   cursor?: string | null;
   category?: Category | null;
+  /** Narrow within a category. A prompt carries both its parent and sub keys. */
+  subcategory?: Category | null;
   freeOnly?: boolean;
   sort?: SortKey;
   search?: string | null;
@@ -66,6 +68,9 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
   }
   if (args.category) {
     wheres.push(sql`${schema.prompts.categories} @> ARRAY[${args.category}]::text[]`);
+  }
+  if (args.subcategory) {
+    wheres.push(sql`${schema.prompts.categories} @> ARRAY[${args.subcategory}]::text[]`);
   }
   if (args.freeOnly) {
     wheres.push(eq(schema.prompts.isFree, true));

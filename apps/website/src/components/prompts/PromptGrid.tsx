@@ -49,6 +49,7 @@ export function PromptGrid({
   const query = new URLSearchParams(
     Object.entries({
       cat: params.get("cat") ?? "",
+      sub: params.get("sub") ?? "",
       free: params.get("free") ?? "",
       fav: params.get("fav") ?? "",
       sort: params.get("sort") ?? "",

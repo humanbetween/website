@@ -11,6 +11,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const catRaw = searchParams.get("cat");
   const category = catRaw && CAT_RE.test(catRaw) ? catRaw : null;
+  const subRaw = searchParams.get("sub");
+  const subcategory = subRaw && CAT_RE.test(subRaw) ? subRaw : null;
   const freeOnly = searchParams.get("free") === "1";
   const favoritesOnly = searchParams.get("fav") === "1";
   const sortRaw = searchParams.get("sort");
@@ -23,6 +25,7 @@ export async function GET(request: Request) {
     const data = await listPrompts({
       cursor,
       category,
+      subcategory,
       freeOnly,
       sort,
       search,

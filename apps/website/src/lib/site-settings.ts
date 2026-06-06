@@ -204,6 +204,26 @@ export async function addPromptCategory(label: string): Promise<PromptCategory[]
   return next;
 }
 
+/**
+ * Add a subcategory under an existing top-level category. Mirrors
+ * `addPromptCategory` but stamps a `parent`. Used inline from the prompt form.
+ */
+export async function addPromptSubcategory(
+  parentKey: string,
+  label: string,
+): Promise<PromptCategory[]> {
+  const trimmed = label.trim();
+  if (!trimmed) throw new Error("Label is required");
+  const current = await getPromptCategoriesUncached();
+  const parent = current.find((c) => c.key === parentKey && !c.parent);
+  if (!parent) throw new Error("Parent category not found");
+  const key = labelToKey(trimmed, current.map((c) => c.key));
+  if (current.some((c) => c.key === key)) return current;
+  const next = [...current, { key, label: trimmed, parent: parentKey }];
+  await setSiteSetting("prompt_categories", { categories: next });
+  return next;
+}
+
 async function getPromptCategoriesUncached(): Promise<PromptCategory[]> {
   try {
     const rows = await db

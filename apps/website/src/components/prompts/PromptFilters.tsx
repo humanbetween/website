@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { Heart, Search } from "lucide-react";
 import { toast } from "sonner";
-import type { SortKey } from "@/lib/prompts/types";
+import { type SortKey, topLevel, subsOf } from "@/lib/prompts/types";
 import { authClient } from "@/lib/auth-client";
 import { useGlassTrigger } from "@/lib/use-glass-trigger";
 import { useCategories } from "./CategoriesContext";
@@ -24,6 +24,11 @@ export function PromptFilters({
   const pinned = useGlassTrigger();
 
   const activeCat = params.get("cat");
+  const activeSub = params.get("sub");
+  const parents = topLevel(categories);
+  const activeParentSubs = activeCat
+    ? subsOf(categories, activeCat).filter((s) => activeSet.has(s.key))
+    : [];
   const freeOnly = params.get("free") === "1";
   const favoritesOnly = params.get("fav") === "1";
   const sort = (params.get("sort") as SortKey) ?? "recent";
@@ -43,6 +48,18 @@ export function PromptFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeCat, activeCategoryKeys.join("|")]);
 
+  // Drop a subcategory filter once it has no prompts left.
+  useEffect(() => {
+    if (activeSub && !activeSet.has(activeSub)) {
+      const sp = new URLSearchParams(params.toString());
+      sp.delete("sub");
+      startTransition(() => {
+        router.replace(`/?${sp.toString()}`, { scroll: false });
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSub, activeCategoryKeys.join("|")]);
+
   const push = useCallback(
     (mut: (sp: URLSearchParams) => void) => {
       const sp = new URLSearchParams(params.toString());
@@ -58,6 +75,14 @@ export function PromptFilters({
     push((sp) => {
       if (cat) sp.set("cat", cat);
       else sp.delete("cat");
+      sp.delete("sub"); // changing the parent always clears the subfilter
+    });
+  }
+
+  function setSubcat(sub: string | null) {
+    push((sp) => {
+      if (sub) sp.set("sub", sub);
+      else sp.delete("sub");
     });
   }
 
@@ -102,7 +127,8 @@ export function PromptFilters({
           : "bg-transparent border-b border-transparent")
       }
     >
-      <div className="container mx-auto max-w-[1440px] px-5 sm:px-6 flex flex-wrap items-center gap-2">
+      <div className="container mx-auto max-w-[1440px] px-5 sm:px-6 flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={() => setCategory(null)}
@@ -110,7 +136,7 @@ export function PromptFilters({
         >
           All
         </button>
-        {categories
+        {parents
           .filter((c) => activeSet.has(c.key))
           .map((c) => (
             <button
@@ -173,6 +199,29 @@ export function PromptFilters({
             className="w-full pl-9 pr-3 py-1.5 text-xs rounded-full bg-card/60 border border-border/60 focus:outline-none focus:border-foreground/40"
           />
         </form>
+        </div>
+
+        {activeParentSubs.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSubcat(null)}
+              className={chip(activeSub === null)}
+            >
+              All
+            </button>
+            {activeParentSubs.map((s) => (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => setSubcat(s.key === activeSub ? null : s.key)}
+                className={chip(s.key === activeSub)}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

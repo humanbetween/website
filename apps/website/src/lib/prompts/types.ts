@@ -1,7 +1,22 @@
 export type PromptCategory = {
   key: string;
   label: string;
+  /** When set, this is a subcategory nested under the category with this key. */
+  parent?: string;
 };
+
+/** Top-level categories (no parent). */
+export function topLevel(cats: readonly PromptCategory[]): PromptCategory[] {
+  return cats.filter((c) => !c.parent);
+}
+
+/** Subcategories of a given parent, in list order. */
+export function subsOf(
+  cats: readonly PromptCategory[],
+  parentKey: string,
+): PromptCategory[] {
+  return cats.filter((c) => c.parent === parentKey);
+}
 
 export const DEFAULT_CATEGORIES: readonly PromptCategory[] = [
   { key: "IMAGE", label: "Image" },
