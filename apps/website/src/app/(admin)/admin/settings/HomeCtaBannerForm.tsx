@@ -4,11 +4,13 @@ import { useRef, useState } from "react";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import type { HomeCtaBanner } from "@/lib/site-settings";
+import { uploadToR2 } from "@/lib/upload/uploadToR2";
 
 export function HomeCtaBannerForm({ initial }: { initial: HomeCtaBanner }) {
   const [values, setValues] = useState<HomeCtaBanner>(initial);
   const [pending, setPending] = useState(false);
   const [uploadingKind, setUploadingKind] = useState<"video" | "image" | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -18,41 +20,19 @@ export function HomeCtaBannerForm({ initial }: { initial: HomeCtaBanner }) {
 
   async function uploadFile(file: File, kind: "video" | "image") {
     setUploadingKind(kind);
+    setProgress(null);
     try {
-      const presignRes = await fetch("/api/admin/upload-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kind: kind === "video" ? "video" : "asset",
-          contentType: file.type || (kind === "video" ? "video/mp4" : "image/jpeg"),
-          size: file.size,
-          filename: file.name,
-        }),
+      const { url } = await uploadToR2(file, {
+        onProgress: kind === "video" ? setProgress : undefined,
       });
-      if (!presignRes.ok) {
-        const body = await presignRes.json().catch(() => ({}));
-        throw new Error(body.error ?? "Could not get upload URL");
-      }
-      const presign = (await presignRes.json()) as {
-        url: string;
-        publicUrl: string;
-        contentType: string;
-      };
-      const uploadRes = await fetch(presign.url, {
-        method: "PUT",
-        headers: { "Content-Type": presign.contentType },
-        body: file,
-      });
-      if (!uploadRes.ok) {
-        throw new Error(`Upload failed (${uploadRes.status})`);
-      }
-      if (kind === "video") set("videoUrl", presign.publicUrl);
-      else set("imageUrl", presign.publicUrl);
+      if (kind === "video") set("videoUrl", url);
+      else set("imageUrl", url);
       toast.success(`${kind === "video" ? "Video" : "Image"} uploaded`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploadingKind(null);
+      setProgress(null);
     }
   }
 
@@ -207,7 +187,9 @@ export function HomeCtaBannerForm({ initial }: { initial: HomeCtaBanner }) {
               ) : (
                 <Upload className="h-3 w-3" />
               )}
-              Upload MP4
+              {uploadingKind === "video" && progress !== null
+                ? `Compressing ${Math.round(progress * 100)}%`
+                : "Upload MP4"}
             </button>
             {values.videoUrl && (
               <button

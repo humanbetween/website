@@ -15,6 +15,8 @@ import {
   type PromptCategory,
 } from "@/lib/prompts/types";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
+import { uploadToR2 } from "@/lib/upload/uploadToR2";
+import { readableBytes } from "@/lib/upload/strategy";
 
 type Props = {
   initial?: Partial<PromptFormValues> & { id?: string };
@@ -76,6 +78,9 @@ export function PromptForm({ initial, mode }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoProgress, setVideoProgress] = useState<number | null>(null);
+  const [videoSavings, setVideoSavings] = useState<string | null>(null);
+  const [refSavings, setRefSavings] = useState<string | null>(null);
 
   const {
     register,
@@ -111,66 +116,33 @@ export function PromptForm({ initial, mode }: Props) {
   const [refUploading, setRefUploading] = useState(false);
 
   async function uploadVideo(file: File) {
-    const presignRes = await fetch("/api/admin/upload-url", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        kind: "video",
-        contentType: file.type || "video/mp4",
-        size: file.size,
-        filename: file.name,
-      }),
-    });
-    if (!presignRes.ok) {
-      const body = await presignRes.json().catch(() => ({}));
-      throw new Error(body.error ?? "Could not get upload URL");
+    setVideoProgress(0);
+    setVideoSavings(null);
+    try {
+      const { url, originalSize, finalSize } = await uploadToR2(file, {
+        onProgress: setVideoProgress,
+      });
+      setVideoSavings(`${readableBytes(originalSize)} → ${readableBytes(finalSize)}`);
+      return url;
+    } finally {
+      setVideoProgress(null);
     }
-    const presign = (await presignRes.json()) as {
-      method: "PUT";
-      url: string;
-      publicUrl: string;
-      contentType: string;
-    };
-    const uploadRes = await fetch(presign.url, {
-      method: "PUT",
-      headers: { "Content-Type": presign.contentType },
-      body: file,
-    });
-    if (!uploadRes.ok) {
-      throw new Error(`Upload failed (${uploadRes.status} ${uploadRes.statusText})`);
-    }
-    return presign.publicUrl;
   }
 
   async function onReferenceChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setRefUploading(true);
+    setRefSavings(null);
     setError(null);
     try {
-      const presignRes = await fetch("/api/admin/upload-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kind: "asset",
-          contentType: file.type || "image/jpeg",
-          size: file.size,
-          filename: file.name,
-        }),
-      });
-      if (!presignRes.ok) throw new Error("Could not get upload URL");
-      const presign = (await presignRes.json()) as {
-        url: string;
-        publicUrl: string;
-        contentType: string;
-      };
-      const up = await fetch(presign.url, {
-        method: "PUT",
-        headers: { "Content-Type": presign.contentType },
-        body: file,
-      });
-      if (!up.ok) throw new Error(`Upload failed (${up.status})`);
-      setValue("referenceImageUrl", presign.publicUrl, { shouldValidate: true });
+      const { url, originalSize, finalSize } = await uploadToR2(file);
+      setValue("referenceImageUrl", url, { shouldValidate: true });
+      setRefSavings(
+        finalSize < originalSize
+          ? `Compressed ${readableBytes(originalSize)} → ${readableBytes(finalSize)}`
+          : `Uploaded ${readableBytes(finalSize)} (already optimized)`,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Reference upload failed");
     } finally {
@@ -240,12 +212,18 @@ export function PromptForm({ initial, mode }: Props) {
           placeholder="https://media.humanbetween.ai/videos/…"
         />
         <div className="flex items-center gap-3 mt-2">
-          <label className="inline-flex items-center gap-2 px-3 py-2 rounded-full glass text-xs cursor-pointer hover:bg-card/80">
-            <Upload className="h-3.5 w-3.5" /> Upload to R2
+          <label className="inline-flex items-center gap-2 px-3 py-2 rounded-full glass text-xs cursor-pointer hover:bg-card/80 aria-disabled:opacity-60 aria-disabled:pointer-events-none" aria-disabled={videoProgress !== null}>
+            {videoProgress !== null ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Upload className="h-3.5 w-3.5" />
+            )}{" "}
+            Upload to R2
             <input
               type="file"
               accept="video/mp4,video/webm,image/*"
               className="hidden"
+              disabled={videoProgress !== null}
               onChange={onVideoChange}
             />
           </label>
@@ -253,6 +231,17 @@ export function PromptForm({ initial, mode }: Props) {
             <span className="text-xs text-muted-foreground">{videoFile.name}</span>
           )}
         </div>
+        {videoProgress !== null && (
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Compressing video… {Math.round(videoProgress * 100)}% — keep this tab
+            open
+          </p>
+        )}
+        {videoSavings && videoProgress === null && (
+          <p className="text-[11px] text-emerald-500 mt-1">
+            Compressed {videoSavings}
+          </p>
+        )}
         {videoUrl && (
           <p className="text-[11px] text-muted-foreground mt-1 truncate">
             {videoUrl}
@@ -300,13 +289,19 @@ export function PromptForm({ initial, mode }: Props) {
           {referenceImageUrl && (
             <button
               type="button"
-              onClick={() => setValue("referenceImageUrl", null, { shouldValidate: true })}
+              onClick={() => {
+                setValue("referenceImageUrl", null, { shouldValidate: true });
+                setRefSavings(null);
+              }}
               className="text-[11px] text-muted-foreground hover:text-foreground underline"
             >
               Remove
             </button>
           )}
         </div>
+        {refSavings && (
+          <p className="text-[11px] text-emerald-500 mt-1">{refSavings}</p>
+        )}
         {referenceImageUrl && (
           <div className="mt-3 h-20 w-20 rounded-lg overflow-hidden border border-border/40 bg-card">
             {/* eslint-disable-next-line @next/next/no-img-element */}

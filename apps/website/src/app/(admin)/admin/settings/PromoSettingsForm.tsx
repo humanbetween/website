@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import type { PromoCard } from "@/lib/site-settings";
+import { uploadToR2 } from "@/lib/upload/uploadToR2";
 
 type Props = {
   initial: PromoCard;
@@ -19,45 +20,23 @@ export function PromoSettingsForm({ initial }: Props) {
   const [position, setPosition] = useState(initial.position);
   const [pending, setPending] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<number | null>(null);
 
   async function onUpload(file: File) {
+    const isVideo = file.type.startsWith("video/");
     setUploading(true);
+    setProgress(null);
     try {
-      const isVideo = file.type.startsWith("video/");
-      const presignRes = await fetch("/api/admin/upload-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          kind: isVideo ? "video" : "asset",
-          contentType: file.type || (isVideo ? "video/mp4" : "image/jpeg"),
-          size: file.size,
-          filename: file.name,
-        }),
+      const { url } = await uploadToR2(file, {
+        onProgress: isVideo ? setProgress : undefined,
       });
-      if (!presignRes.ok) {
-        const body = await presignRes.json().catch(() => ({}));
-        throw new Error(body.error ?? "Could not get upload URL");
-      }
-      const presign = (await presignRes.json()) as {
-        method: "PUT";
-        url: string;
-        publicUrl: string;
-        contentType: string;
-      };
-      const uploadRes = await fetch(presign.url, {
-        method: "PUT",
-        headers: { "Content-Type": presign.contentType },
-        body: file,
-      });
-      if (!uploadRes.ok) {
-        throw new Error(`Upload failed (${uploadRes.status})`);
-      }
-      setImageUrl(presign.publicUrl);
+      setImageUrl(url);
       toast.success(`${isVideo ? "Video" : "Image"} uploaded`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
+      setProgress(null);
     }
   }
 
@@ -146,7 +125,11 @@ export function PromoSettingsForm({ initial }: Props) {
             ) : (
               <Upload className="h-3.5 w-3.5" />
             )}
-            {uploading ? "Uploading…" : "Upload to R2"}
+            {uploading
+              ? progress !== null
+                ? `Compressing ${Math.round(progress * 100)}%`
+                : "Uploading…"
+              : "Upload to R2"}
             <input
               type="file"
               accept="image/*,video/mp4,video/webm,video/quicktime"
