@@ -1,10 +1,15 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Heart, Search } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { type SortKey, topLevel, subsOf } from "@/lib/prompts/types";
+import {
+  buildPromptsQuery,
+  promptsInfiniteOptions,
+} from "@/lib/prompts/promptsQuery";
 import { authClient } from "@/lib/auth-client";
 import { useGlassTrigger } from "@/lib/use-glass-trigger";
 import { useCategories } from "./CategoriesContext";
@@ -16,7 +21,7 @@ export function PromptFilters({
 }) {
   const router = useRouter();
   const params = useSearchParams();
-  const [, startTransition] = useTransition();
+  const queryClient = useQueryClient();
   const categories = useCategories();
   const activeSet = new Set(activeCategoryKeys);
   const { data: session } = authClient.useSession();
@@ -35,44 +40,62 @@ export function PromptFilters({
   const search = params.get("q") ?? "";
   const [searchDraft, setSearchDraft] = useState(search);
 
-  // If the currently selected category no longer has any prompts, drop it
-  // from the URL so the filter chip disappears and we don't show an empty grid.
-  useEffect(() => {
-    if (activeCat && !activeSet.has(activeCat)) {
-      const sp = new URLSearchParams(params.toString());
-      sp.delete("cat");
-      startTransition(() => {
-        router.replace(`/?${sp.toString()}`, { scroll: false });
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeCat, activeCategoryKeys.join("|")]);
+  // Update the URL via the History API instead of router.replace: it syncs with
+  // useSearchParams (Next.js) but does NOT trigger an RSC round-trip, so the
+  // grid reacts instantly with no server refetch.
+  const setParams = useCallback((mut: (sp: URLSearchParams) => void) => {
+    const sp = new URLSearchParams(window.location.search);
+    mut(sp);
+    const qs = sp.toString();
+    window.history.replaceState(null, "", qs ? `/?${qs}` : "/");
+  }, []);
 
-  // Drop a subcategory filter once it has no prompts left.
-  useEffect(() => {
-    if (activeSub && !activeSet.has(activeSub)) {
-      const sp = new URLSearchParams(params.toString());
-      sp.delete("sub");
-      startTransition(() => {
-        router.replace(`/?${sp.toString()}`, { scroll: false });
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeSub, activeCategoryKeys.join("|")]);
-
-  const push = useCallback(
-    (mut: (sp: URLSearchParams) => void) => {
-      const sp = new URLSearchParams(params.toString());
-      mut(sp);
-      startTransition(() => {
-        router.replace(`/?${sp.toString()}`, { scroll: false });
-      });
+  // Warm the cache for a category (+ optional subcategory) so the click is an
+  // instant cache hit instead of a fetch.
+  const prefetchCat = useCallback(
+    (catKey: string | null, subKey?: string | null) => {
+      const sp = new URLSearchParams(window.location.search);
+      if (catKey) sp.set("cat", catKey);
+      else sp.delete("cat");
+      if (subKey) sp.set("sub", subKey);
+      else sp.delete("sub");
+      sp.delete("cursor");
+      queryClient.prefetchInfiniteQuery(
+        promptsInfiniteOptions(buildPromptsQuery(sp)),
+      );
     },
-    [params, router],
+    [queryClient],
   );
 
+  // Prefetch every active category's first page while the browser is idle.
+  useEffect(() => {
+    const run = () => {
+      for (const key of activeCategoryKeys.slice(0, 16)) prefetchCat(key);
+    };
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(run);
+      return () => window.cancelIdleCallback?.(id);
+    }
+    const id = window.setTimeout(run, 300);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCategoryKeys.join("|")]);
+
+  // Drop a selected category/subcategory once it no longer has prompts.
+  useEffect(() => {
+    if (activeCat && !activeSet.has(activeCat)) {
+      setParams((sp) => {
+        sp.delete("cat");
+        sp.delete("sub");
+      });
+    } else if (activeSub && !activeSet.has(activeSub)) {
+      setParams((sp) => sp.delete("sub"));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCat, activeSub, activeCategoryKeys.join("|")]);
+
   function setCategory(cat: string | null) {
-    push((sp) => {
+    setParams((sp) => {
       if (cat) sp.set("cat", cat);
       else sp.delete("cat");
       sp.delete("sub"); // changing the parent always clears the subfilter
@@ -80,21 +103,21 @@ export function PromptFilters({
   }
 
   function setSubcat(sub: string | null) {
-    push((sp) => {
+    setParams((sp) => {
       if (sub) sp.set("sub", sub);
       else sp.delete("sub");
     });
   }
 
   function toggleFree() {
-    push((sp) => {
+    setParams((sp) => {
       if (freeOnly) sp.delete("free");
       else sp.set("free", "1");
     });
   }
 
   function setSort(next: SortKey) {
-    push((sp) => sp.set("sort", next));
+    setParams((sp) => sp.set("sort", next));
   }
 
   function toggleFavoritesOnly() {
@@ -103,7 +126,7 @@ export function PromptFilters({
       router.push("/auth/sign-in?redirect=/");
       return;
     }
-    push((sp) => {
+    setParams((sp) => {
       if (favoritesOnly) sp.delete("fav");
       else sp.set("fav", "1");
     });
@@ -111,7 +134,7 @@ export function PromptFilters({
 
   function applySearch(e: React.FormEvent) {
     e.preventDefault();
-    push((sp) => {
+    setParams((sp) => {
       if (searchDraft.trim()) sp.set("q", searchDraft.trim());
       else sp.delete("q");
     });
@@ -142,6 +165,7 @@ export function PromptFilters({
             <button
               key={c.key}
               type="button"
+              onMouseEnter={() => prefetchCat(c.key)}
               onClick={() => setCategory(c.key === activeCat ? null : c.key)}
               className={chip(c.key === activeCat)}
             >
@@ -214,6 +238,7 @@ export function PromptFilters({
               <button
                 key={s.key}
                 type="button"
+                onMouseEnter={() => prefetchCat(activeCat, s.key)}
                 onClick={() => setSubcat(s.key === activeSub ? null : s.key)}
                 className={chip(s.key === activeSub)}
               >

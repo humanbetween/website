@@ -9,29 +9,18 @@ import {
   useState,
 } from "react";
 import { useSearchParams } from "next/navigation";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, keepPreviousData } from "@tanstack/react-query";
 import { PromptCard } from "./PromptCard";
 import { PromptDialog } from "./PromptDialog";
 import { PromoCard } from "./PromoCard";
-import type { PromptListResponse } from "@/lib/prompts/types";
+import {
+  buildPromptsQuery,
+  promptsInfiniteOptions,
+} from "@/lib/prompts/promptsQuery";
 import type { PromoCard as PromoCardData } from "@/lib/site-settings";
 
 const GRID_CLASSES =
   "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5";
-
-async function fetchPage({
-  pageParam,
-  query,
-}: {
-  pageParam: string | null;
-  query: string;
-}): Promise<PromptListResponse> {
-  const sp = new URLSearchParams(query);
-  if (pageParam) sp.set("cursor", pageParam);
-  const res = await fetch(`/api/prompts?${sp.toString()}`);
-  if (!res.ok) throw new Error("Failed to fetch prompts");
-  return res.json() as Promise<PromptListResponse>;
-}
 
 export function PromptGrid({
   promo,
@@ -46,23 +35,14 @@ export function PromptGrid({
 }) {
   const favoriteSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
   const params = useSearchParams();
-  const query = new URLSearchParams(
-    Object.entries({
-      cat: params.get("cat") ?? "",
-      sub: params.get("sub") ?? "",
-      free: params.get("free") ?? "",
-      fav: params.get("fav") ?? "",
-      sort: params.get("sort") ?? "",
-      q: params.get("q") ?? "",
-    }).filter(([, v]) => v),
-  ).toString();
+  const query = buildPromptsQuery(params);
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
     useInfiniteQuery({
-      queryKey: ["prompts", query],
-      initialPageParam: null as string | null,
-      queryFn: ({ pageParam }) => fetchPage({ pageParam, query }),
-      getNextPageParam: (last) => last.nextCursor,
+      ...promptsInfiniteOptions(query),
+      // Keep the previous category's grid on screen while the next one loads —
+      // no skeleton flash, the swap feels instant.
+      placeholderData: keepPreviousData,
     });
 
   const items = useMemo(
