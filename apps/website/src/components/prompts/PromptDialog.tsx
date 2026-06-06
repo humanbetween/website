@@ -142,7 +142,7 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
           />
           {prompt.referenceImageUrl && (
             <div
-              className="absolute bottom-3 left-3 h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden border border-white/30 shadow-xl bg-black/40 backdrop-blur-sm"
+              className="absolute bottom-3 left-3 h-24 w-24 sm:h-[120px] sm:w-[120px] rounded-xl overflow-hidden border border-white/30 shadow-xl bg-black/40 backdrop-blur-sm"
               title="Reference frame — upload this image with the prompt"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
