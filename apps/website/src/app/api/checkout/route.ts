@@ -6,6 +6,7 @@ import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
 import { appUrl, stripe, stripeConfig } from "@/lib/stripe";
 import { getPromptById } from "@/lib/prompts/queries";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,9 @@ const bodySchema = z.discriminatedUnion("mode", [
 ]);
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, "checkout", 10, 60_000);
+  if (limited) return limited;
+
   const session = await auth.api.getSession({ headers: await headers() });
   const user = session?.user ?? null;
 

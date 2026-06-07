@@ -187,7 +187,10 @@ export async function getSimilarPrompts(promptId: string, categories: string[], 
       and(
         isNull(schema.prompts.deletedAt),
         sql`${schema.prompts.id} <> ${promptId}`,
-        sql`${schema.prompts.categories} && ${sql.raw(`ARRAY[${categories.map((c) => `'${c}'`).join(",")}]::text[]`)}`,
+        sql`${schema.prompts.categories} && ARRAY[${sql.join(
+          categories.map((c) => sql`${c}`),
+          sql`, `,
+        )}]::text[]`,
       ),
     )
     .orderBy(desc(schema.prompts.popularityCount))

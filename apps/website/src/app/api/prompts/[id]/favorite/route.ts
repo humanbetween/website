@@ -3,13 +3,17 @@ import { headers } from "next/headers";
 import { and, eq, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  const limited = rateLimit(request, "favorite", 60, 60_000);
+  if (limited) return limited;
+
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) {
     return NextResponse.json({ error: "Sign in first" }, { status: 401 });

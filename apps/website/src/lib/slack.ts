@@ -1,5 +1,10 @@
 type SlackBlock = Record<string, unknown>;
 
+// Escape the three chars Slack mrkdwn treats specially, so user-supplied text
+// can't inject links/formatting (e.g. <https://evil|click>) into our channel.
+const esc = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 export async function postContactInquiryToSlack({
   name,
   email,
@@ -20,13 +25,16 @@ export async function postContactInquiryToSlack({
     {
       type: "section",
       fields: [
-        { type: "mrkdwn", text: `*Name*\n${name}` },
-        { type: "mrkdwn", text: `*Email*\n<mailto:${email}|${email}>` },
+        { type: "mrkdwn", text: `*Name*\n${esc(name)}` },
+        { type: "mrkdwn", text: `*Email*\n<mailto:${email}|${esc(email)}>` },
       ],
     },
     {
       type: "section",
-      text: { type: "mrkdwn", text: `*Message*\n>${message.replace(/\n/g, "\n>")}` },
+      text: {
+        type: "mrkdwn",
+        text: `*Message*\n>${esc(message).replace(/\n/g, "\n>")}`,
+      },
     },
     {
       type: "actions",
@@ -44,7 +52,10 @@ export async function postContactInquiryToSlack({
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: `New contact inquiry from ${name}`, blocks }),
+      body: JSON.stringify({
+        text: `New contact inquiry from ${esc(name)}`,
+        blocks,
+      }),
     });
     if (!res.ok) {
       console.error("slack webhook returned", res.status, await res.text());
@@ -69,10 +80,10 @@ export async function postNewSubscriberToSlack({
   if (!url) return;
 
   const fields: SlackBlock[] = [
-    { type: "mrkdwn", text: `*Email*\n<mailto:${email}|${email}>` },
+    { type: "mrkdwn", text: `*Email*\n<mailto:${email}|${esc(email)}>` },
   ];
-  if (name) fields.push({ type: "mrkdwn", text: `*Name*\n${name}` });
-  fields.push({ type: "mrkdwn", text: `*Source*\n${source}` });
+  if (name) fields.push({ type: "mrkdwn", text: `*Name*\n${esc(name)}` });
+  fields.push({ type: "mrkdwn", text: `*Source*\n${esc(source)}` });
 
   const blocks: SlackBlock[] = [
     {

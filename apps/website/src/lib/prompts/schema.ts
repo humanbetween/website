@@ -18,7 +18,13 @@ export const promptFormSchema = z.object({
   description: z.string().max(2000),
   // Optional: a product is either a prompt or a website (or both).
   promptText: z.string().max(20_000),
-  websiteUrl: z.string().max(500).nullable(),
+  websiteUrl: z
+    .string()
+    .max(500)
+    .refine((v) => v === "" || /^https?:\/\//i.test(v), {
+      message: "Website link must start with http:// or https://",
+    })
+    .nullable(),
   priceCents: z.number().int().min(0).max(100_000),
   isFree: z.boolean(),
   videoUrl: z.string().min(1),

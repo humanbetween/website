@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sendContactInquiryEmail } from "@/lib/resend";
 import { postContactInquiryToSlack } from "@/lib/slack";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,9 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const limited = rateLimit(request, "contact", 5, 10 * 60_000);
+  if (limited) return limited;
+
   const body = await request.json().catch(() => null);
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
