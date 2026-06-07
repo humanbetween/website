@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Copy, Check, Lock, Download } from "lucide-react";
+import { Copy, Check, Lock, Download, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -84,14 +84,16 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
   }
 
   const accessText = detail?.promptText ?? prompt.promptText;
-  const showUnlockCta = detail !== null && !detail.canAccess && !accessText;
+  const websiteUrl = detail?.websiteUrl ?? prompt.websiteUrl;
+  const hasAccess = !!accessText || !!websiteUrl;
+  const showUnlockCta = detail !== null && !detail.canAccess;
   const primaryCategory = prompt.categories[0];
   const categoryLabel = useCategoryLabel(primaryCategory);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-[920px] w-[calc(100vw-2rem)] max-h-[calc(100vh-3rem)] p-0 overflow-hidden bg-card border-border/60 flex flex-col [&>button]:hidden"
+        className="max-w-[920px] w-[calc(100vw-2rem)] h-[calc(100vh-3rem)] p-0 overflow-hidden bg-card border-border/60 flex flex-col [&>button]:hidden"
       >
         <header className="flex items-center justify-between px-5 py-4 border-b border-border/40 gap-3 shrink-0">
           <div className="min-w-0">
@@ -103,16 +105,29 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
             </DialogDescription>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            {accessText ? (
+            {hasAccess ? (
               <>
-                <button
-                  type="button"
-                  onClick={onCopy}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors"
-                >
-                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                  {copied ? "Copied" : "Copy prompt"}
-                </button>
+                {accessText && (
+                  <button
+                    type="button"
+                    onClick={onCopy}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors"
+                  >
+                    {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    {copied ? "Copied" : "Copy prompt"}
+                  </button>
+                )}
+                {websiteUrl && (
+                  <a
+                    href={websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Visit website
+                  </a>
+                )}
                 {prompt.referenceImageUrl && (
                   <button
                     type="button"

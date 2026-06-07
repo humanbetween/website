@@ -155,6 +155,8 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     isPublished: r.isPublished,
     createdAt: r.createdAt.toISOString(),
     promptText: r.isFree || args.hasUnlimited ? r.promptText : null,
+    websiteUrl: r.isFree || args.hasUnlimited ? r.websiteUrl : null,
+    hasWebsite: !!r.websiteUrl,
   }));
 
   return { items, nextCursor };

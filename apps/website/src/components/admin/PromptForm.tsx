@@ -131,6 +131,7 @@ export function PromptForm({ initial, mode }: Props) {
       title: initial?.title ?? "",
       description: initial?.description ?? "",
       promptText: initial?.promptText ?? "",
+      websiteUrl: initial?.websiteUrl ?? "",
       priceCents: 0,
       isFree: initial?.isFree ?? false,
       videoUrl: initial?.videoUrl ?? "",
@@ -350,12 +351,29 @@ export function PromptForm({ initial, mode }: Props) {
         )}
       </Field>
 
-      <Field label="Prompt text" error={errors.promptText?.message}>
+      <Field
+        label="Prompt text"
+        hint="Optional — the prompt to copy. Leave empty for a website-only product."
+        error={errors.promptText?.message}
+      >
         <textarea
           {...register("promptText")}
           rows={6}
           className={`${inputCls} font-mono text-xs`}
           placeholder="The actual prompt to copy."
+        />
+      </Field>
+
+      <Field
+        label="Website link"
+        hint="Optional — for products that point to a website instead of (or alongside) a prompt. Gated like the prompt: visitors need access to open it."
+        error={errors.websiteUrl?.message}
+      >
+        <input
+          type="url"
+          {...register("websiteUrl")}
+          className={inputCls}
+          placeholder="https://example.com"
         />
       </Field>
 

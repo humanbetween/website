@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Copy, Check } from "lucide-react";
+import { Lock, Copy, Check, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
 import type { PromptListItem } from "@/lib/prompts/types";
@@ -34,6 +34,12 @@ export function PromptCard({
     e.stopPropagation();
     if (!accessible) {
       router.push("/pricing");
+      return;
+    }
+    if (prompt.hasWebsite) {
+      // Open the full-screen dialog like a normal prompt; the actual
+      // "Visit website" action lives inside the dialog.
+      onOpen();
       return;
     }
     if (prompt.promptText) {
@@ -106,14 +112,27 @@ export function PromptCard({
         <button
           type="button"
           onClick={onCardButtonClick}
-          aria-label={accessible ? "Copy prompt" : "Locked — open"}
+          aria-label={
+            accessible
+              ? prompt.hasWebsite
+                ? "Open website preview"
+                : "Copy prompt"
+              : "Locked — open"
+          }
           className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-foreground/5 border border-border/60 text-[11px] text-muted-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-colors"
         >
           {accessible ? (
-            <>
-              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-              {copied ? "Copied" : "Copy"}
-            </>
+            prompt.hasWebsite ? (
+              <>
+                <ExternalLink className="h-3 w-3" />
+                Website
+              </>
+            ) : (
+              <>
+                {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                {copied ? "Copied" : "Copy"}
+              </>
+            )
           ) : (
             <Lock className="h-3 w-3" />
           )}

@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Lock, ArrowLeft } from "lucide-react";
+import { Lock, ArrowLeft, ExternalLink } from "lucide-react";
 import { auth } from "@/lib/auth";
 import { canAccessPrompt } from "@/lib/access";
 import {
@@ -80,13 +80,14 @@ export default async function PromptDetailPage({
           )}
         </header>
 
+        {prompt.promptText && (
         <section className="rounded-2xl border border-border/40 bg-card/40 p-6">
           <div className="flex items-center justify-between mb-4 gap-3">
             <h2 className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
               Prompt
             </h2>
             {allowed ? (
-              <CopyPromptButton text={prompt.promptText} />
+              <CopyPromptButton text={prompt.promptText ?? ""} />
             ) : !session ? (
               <Link
                 href={`/auth/sign-in?redirect=/prompt/${prompt.id}`}
@@ -112,6 +113,36 @@ export default async function PromptDetailPage({
             </div>
           )}
         </section>
+        )}
+
+        {prompt.websiteUrl && (
+          <section className="rounded-2xl border border-border/40 bg-card/40 p-6">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                Website
+              </h2>
+              {allowed ? (
+                <a
+                  href={prompt.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90"
+                >
+                  <ExternalLink className="h-3 w-3" /> Visit website
+                </a>
+              ) : !session ? (
+                <Link
+                  href={`/auth/sign-in?redirect=/prompt/${prompt.id}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90"
+                >
+                  <Lock className="h-3 w-3" /> Sign in to unlock
+                </Link>
+              ) : (
+                <UnlockButton />
+              )}
+            </div>
+          </section>
+        )}
 
         {(prompt.tools.length > 0 || prompt.tags.length > 0) && (
           <section className="grid sm:grid-cols-2 gap-4">

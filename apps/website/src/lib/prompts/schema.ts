@@ -16,7 +16,9 @@ const categoryKey = z
 export const promptFormSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(2000),
-  promptText: z.string().min(1).max(20_000),
+  // Optional: a product is either a prompt or a website (or both).
+  promptText: z.string().max(20_000),
+  websiteUrl: z.string().max(500).nullable(),
   priceCents: z.number().int().min(0).max(100_000),
   isFree: z.boolean(),
   videoUrl: z.string().min(1),

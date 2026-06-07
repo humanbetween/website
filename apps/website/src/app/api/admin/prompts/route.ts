@@ -38,6 +38,7 @@ export async function POST(request: Request) {
         title: parsed.data.title,
         description: parsed.data.description,
         promptText: parsed.data.promptText,
+        websiteUrl: parsed.data.websiteUrl ?? null,
         priceCents: parsed.data.priceCents,
         isFree: parsed.data.isFree,
         videoUrl: parsed.data.videoUrl,

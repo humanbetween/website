@@ -72,7 +72,7 @@ export function AutoPlayMedia({
             alt={alt}
             loading="lazy"
             decoding="async"
-            className="block max-h-full max-w-full w-auto h-auto object-contain"
+            className="block h-full w-full object-contain"
           />
         ) : (
           <video
@@ -84,7 +84,7 @@ export function AutoPlayMedia({
             loop
             preload="metadata"
             aria-label={alt}
-            className="block max-h-full max-w-full w-auto h-auto object-contain"
+            className="block h-full w-full object-contain"
           />
         )}
       </div>

@@ -70,6 +70,10 @@ export type PromptListItem = {
   // Only sent when is_free === true. For paid prompts, fetched on demand
   // by the dialog through /api/prompts/[id], which applies access gating.
   promptText: string | null;
+  // Same gating as promptText. `hasWebsite` is always present so the UI can
+  // show a (locked) "Visit website" affordance even when the URL is withheld.
+  websiteUrl: string | null;
+  hasWebsite: boolean;
 };
 
 export type PromptDetail = PromptListItem & {
@@ -92,7 +96,8 @@ export type PromptRow = {
   favoriteCount: number;
   isPublished: boolean;
   createdAt: Date;
-  promptText: string;
+  promptText: string | null;
+  websiteUrl: string | null;
 };
 
 export function rowToListItem(p: PromptRow): PromptListItem {
@@ -113,6 +118,8 @@ export function rowToListItem(p: PromptRow): PromptListItem {
     isPublished: p.isPublished,
     createdAt: p.createdAt.toISOString(),
     promptText: p.isFree ? p.promptText : null,
+    websiteUrl: p.isFree ? p.websiteUrl : null,
+    hasWebsite: !!p.websiteUrl,
   };
 }
 

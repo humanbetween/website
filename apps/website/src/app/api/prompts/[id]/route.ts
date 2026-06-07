@@ -56,6 +56,8 @@ export async function GET(
       isPublished: prompt.isPublished,
       createdAt: prompt.createdAt.toISOString(),
       promptText: canAccess ? prompt.promptText : null,
+      websiteUrl: canAccess ? prompt.websiteUrl : null,
+      hasWebsite: !!prompt.websiteUrl,
       canAccess,
     };
 
