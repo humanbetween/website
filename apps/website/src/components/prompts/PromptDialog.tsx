@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Copy, Check, Lock, Download, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
@@ -18,11 +18,38 @@ type Props = {
   prompt: PromptListItem;
   open: boolean;
   onOpenChange: (next: boolean) => void;
+  onPrev?: () => void;
+  onNext?: () => void;
 };
 
-export function PromptDialog({ prompt, open, onOpenChange }: Props) {
+export function PromptDialog({
+  prompt,
+  open,
+  onOpenChange,
+  onPrev,
+  onNext,
+}: Props) {
   const [detail, setDetail] = useState<PromptDetail | null>(null);
   const [copied, setCopied] = useState(false);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+
+  function onTouchStart(e: React.TouchEvent) {
+    const t = e.touches[0];
+    touchStart.current = { x: t.clientX, y: t.clientY };
+  }
+
+  function onTouchEnd(e: React.TouchEvent) {
+    const start = touchStart.current;
+    touchStart.current = null;
+    if (!start) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    // Horizontal swipe only: dominant X movement over a small threshold.
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy)) return;
+    if (dx < 0) onNext?.();
+    else onPrev?.();
+  }
 
   // Reset transient state whenever the open prompt changes
   useEffect(() => {
@@ -93,7 +120,9 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-w-[920px] w-[calc(100vw-2rem)] h-[calc(100vh-3rem)] p-0 overflow-hidden bg-card border-border/60 flex flex-col [&>button]:hidden"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        className="max-w-[920px] w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] p-0 overflow-hidden bg-card border-border/60 flex flex-col [&>button]:hidden"
       >
         <header className="flex items-center justify-between px-5 py-4 border-b border-border/40 gap-3 shrink-0">
           <div className="min-w-0">
@@ -147,7 +176,7 @@ export function PromptDialog({ prompt, open, onOpenChange }: Props) {
           </div>
         </header>
 
-        <div className="relative flex-1 min-h-0 overflow-hidden bg-black">
+        <div className="relative h-[50vh] sm:h-[70vh] overflow-hidden bg-black">
           <AutoPlayMedia
             src={prompt.videoUrl}
             poster={prompt.thumbnailUrl}

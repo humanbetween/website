@@ -63,29 +63,31 @@ export function PromptGrid({
     [],
   );
 
-  // Keyboard navigation while the dialog is open
+  const goPrev = useCallback(() => {
+    if (openIndex !== null && openIndex > 0) setOpenIndex(openIndex - 1);
+  }, [openIndex]);
+
+  const goNext = useCallback(() => {
+    if (openIndex === null) return;
+    if (openIndex < items.length - 1) setOpenIndex(openIndex + 1);
+    else if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [openIndex, items.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Keyboard navigation while the dialog is open (desktop)
   useEffect(() => {
     if (openIndex === null) return;
     function onKey(e: KeyboardEvent) {
-      if (openIndex === null) return;
       if (e.key === "ArrowLeft") {
-        if (openIndex > 0) {
-          e.preventDefault();
-          setOpenIndex(openIndex - 1);
-        }
+        e.preventDefault();
+        goPrev();
       } else if (e.key === "ArrowRight") {
-        if (openIndex < items.length - 1) {
-          e.preventDefault();
-          setOpenIndex(openIndex + 1);
-        } else if (hasNextPage && !isFetchingNextPage) {
-          e.preventDefault();
-          fetchNextPage();
-        }
+        e.preventDefault();
+        goNext();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [openIndex, items.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [openIndex, goPrev, goNext]);
 
   // Reset openIndex if filters change and current index falls out of range
   useEffect(() => {
@@ -166,6 +168,8 @@ export function PromptGrid({
           onOpenChange={(next) => {
             if (!next) setOpenIndex(null);
           }}
+          onPrev={goPrev}
+          onNext={goNext}
         />
       )}
     </>

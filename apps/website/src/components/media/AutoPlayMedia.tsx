@@ -43,6 +43,7 @@ export function AutoPlayMedia({
   const containerRef = useLazyAutoplay<HTMLDivElement>((visible) => {
     if (isImage || !videoRef.current) return;
     if (visible) {
+      videoRef.current.muted = true;
       videoRef.current.play().catch(() => {});
     } else {
       videoRef.current.pause();
@@ -55,6 +56,9 @@ export function AutoPlayMedia({
   useEffect(() => {
     if (isImage || !videoRef.current) return;
     const v = videoRef.current;
+    // React sets the `muted` attribute but not always the property; iOS/Chrome
+    // only allow muted autoplay when the property is true. Force it here.
+    v.muted = true;
     v.load();
     const p = v.play();
     if (p && typeof p.catch === "function") p.catch(() => {});
