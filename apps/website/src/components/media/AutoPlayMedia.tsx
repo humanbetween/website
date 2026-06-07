@@ -83,6 +83,7 @@ export function AutoPlayMedia({
             ref={videoRef}
             src={src}
             poster={poster ?? undefined}
+            autoPlay
             muted
             playsInline
             loop
@@ -114,6 +115,7 @@ export function AutoPlayMedia({
             ref={videoRef}
             src={src}
             poster={poster ?? undefined}
+            autoPlay
             muted
             playsInline
             loop
@@ -145,6 +147,7 @@ export function AutoPlayMedia({
           ref={videoRef}
           src={src}
           poster={poster ?? undefined}
+          autoPlay
           muted
           playsInline
           loop
