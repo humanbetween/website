@@ -25,7 +25,7 @@ function getLimiter(
   if (!rl) {
     rl = new Ratelimit({
       redis,
-      limiter: Ratelimit.slidingWindow(limit, `${windowMs} ms`),
+      limiter: Ratelimit.slidingWindow(limit, `${Math.max(1, Math.round(windowMs / 1000))} s`),
       prefix: `rl:${name}`,
       ephemeralCache,
     });
