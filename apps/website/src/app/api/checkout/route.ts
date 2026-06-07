@@ -22,7 +22,7 @@ const bodySchema = z.discriminatedUnion("mode", [
 ]);
 
 export async function POST(request: Request) {
-  const limited = rateLimit(request, "checkout", 10, 60_000);
+  const limited = await rateLimit(request, "checkout", 10, 60_000);
   if (limited) return limited;
 
   const session = await auth.api.getSession({ headers: await headers() });

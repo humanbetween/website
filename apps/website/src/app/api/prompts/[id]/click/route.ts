@@ -11,7 +11,7 @@ export async function POST(
   request: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  const limited = rateLimit(request, "click", 60, 60_000);
+  const limited = await rateLimit(request, "click", 60, 60_000);
   if (limited) return limited;
 
   const { id } = await ctx.params;
