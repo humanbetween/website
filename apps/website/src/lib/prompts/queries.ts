@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, gt, ilike, isNull, lt, or, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
+import { slugify, UUID_RE } from "./slug";
 import type { Category, PromptListItem, PromptListResponse, SortKey } from "./types";
 
 const PAGE_SIZE = 24;
@@ -169,6 +170,17 @@ export async function getPromptById(id: string) {
     .where(and(eq(schema.prompts.id, id), isNull(schema.prompts.deletedAt)))
     .limit(1);
   return rows[0] ?? null;
+}
+
+// Resolve a /?prompt=<ref> value — either a UUID or a title slug — to a prompt.
+export async function resolvePromptRef(ref: string) {
+  if (UUID_RE.test(ref)) return getPromptById(ref);
+  const rows = await db
+    .select({ id: schema.prompts.id, title: schema.prompts.title })
+    .from(schema.prompts)
+    .where(isNull(schema.prompts.deletedAt));
+  const match = rows.find((r) => slugify(r.title) === ref);
+  return match ? getPromptById(match.id) : null;
 }
 
 export async function incrementPopularity(id: string) {

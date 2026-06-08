@@ -17,6 +17,8 @@ import {
   buildPromptsQuery,
   promptsInfiniteOptions,
 } from "@/lib/prompts/promptsQuery";
+import { slugify } from "@/lib/prompts/slug";
+import type { PromptListItem } from "@/lib/prompts/types";
 import type { PromoCard as PromoCardData } from "@/lib/site-settings";
 
 const GRID_CLASSES =
@@ -50,32 +52,97 @@ export function PromptGrid({
     [data],
   );
 
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  // The open prompt is driven by the ?prompt=<slug> URL param so it's shareable
+  // and the browser back button just works. The ref is a readable title slug;
+  // we still accept a raw UUID for backward-compatible links.
+  const activeRef = params.get("prompt");
+  const matchesRef = useCallback(
+    (p: PromptListItem) =>
+      !!activeRef && (slugify(p.title) === activeRef || p.id === activeRef),
+    [activeRef],
+  );
+  const activeIndex = activeRef ? items.findIndex(matchesRef) : -1;
+  const [deepLinked, setDeepLinked] = useState<PromptListItem | null>(null);
 
-  const openAt = useCallback(
-    (index: number, promptId: string) => {
-      setOpenIndex(index);
-      fetch(`/api/prompts/${promptId}/click`, {
-        method: "POST",
-        keepalive: true,
-      }).catch(() => {});
+  // A shared/deep link may point at a prompt that isn't in the loaded grid —
+  // fetch it on demand (the API resolves slug or UUID) so the dialog can still
+  // open.
+  useEffect(() => {
+    if (!activeRef || items.some(matchesRef)) return;
+    let active = true;
+    fetch(`/api/prompts/${activeRef}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: PromptListItem | null) => {
+        if (!active || !d) return;
+        setDeepLinked(d);
+        fetch(`/api/prompts/${d.id}/click`, {
+          method: "POST",
+          keepalive: true,
+        }).catch(() => {});
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [activeRef, items, matchesRef]);
+
+  const setPromptUrl = useCallback(
+    (ref: string | null, mode: "push" | "replace") => {
+      const sp = new URLSearchParams(window.location.search);
+      if (ref) sp.set("prompt", ref);
+      else sp.delete("prompt");
+      const qs = sp.toString();
+      const url = qs ? `/?${qs}` : "/";
+      if (mode === "push") window.history.pushState(null, "", url);
+      else window.history.replaceState(null, "", url);
     },
     [],
   );
 
+  const openItem = useCallback(
+    (p: PromptListItem) => {
+      setPromptUrl(slugify(p.title), "push");
+      fetch(`/api/prompts/${p.id}/click`, {
+        method: "POST",
+        keepalive: true,
+      }).catch(() => {});
+    },
+    [setPromptUrl],
+  );
+
+  const closePrompt = useCallback(() => {
+    setPromptUrl(null, "replace");
+  }, [setPromptUrl]);
+
   const goPrev = useCallback(() => {
-    if (openIndex !== null && openIndex > 0) setOpenIndex(openIndex - 1);
-  }, [openIndex]);
+    if (activeIndex > 0)
+      setPromptUrl(slugify(items[activeIndex - 1]!.title), "replace");
+  }, [activeIndex, items, setPromptUrl]);
 
   const goNext = useCallback(() => {
-    if (openIndex === null) return;
-    if (openIndex < items.length - 1) setOpenIndex(openIndex + 1);
+    if (activeIndex < 0) return;
+    if (activeIndex < items.length - 1)
+      setPromptUrl(slugify(items[activeIndex + 1]!.title), "replace");
     else if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-  }, [openIndex, items.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [
+    activeIndex,
+    items,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    setPromptUrl,
+  ]);
+
+  const openPrompt =
+    activeIndex >= 0
+      ? items[activeIndex]
+      : deepLinked && matchesRef(deepLinked)
+        ? deepLinked
+        : null;
 
   // Keyboard navigation while the dialog is open (desktop)
   useEffect(() => {
-    if (openIndex === null) return;
+    if (!openPrompt) return;
     function onKey(e: KeyboardEvent) {
       if (e.key === "ArrowLeft") {
         e.preventDefault();
@@ -87,14 +154,7 @@ export function PromptGrid({
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [openIndex, goPrev, goNext]);
-
-  // Reset openIndex if filters change and current index falls out of range
-  useEffect(() => {
-    if (openIndex !== null && openIndex >= items.length) {
-      setOpenIndex(null);
-    }
-  }, [items.length, openIndex]);
+  }, [openPrompt, goPrev, goNext]);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -132,7 +192,6 @@ export function PromptGrid({
     );
   }
 
-  const openPrompt = openIndex !== null ? items[openIndex] : null;
   const promoEnabled = !!(promo && promo.active);
   const promoPos = promoEnabled
     ? Math.min(Math.max(promo!.position ?? 8, 0), items.length)
@@ -146,7 +205,7 @@ export function PromptGrid({
             {promoEnabled && i === promoPos && <PromoCard promo={promo!} />}
             <PromptCard
               prompt={p}
-              onOpen={() => openAt(i, p.id)}
+              onOpen={() => openItem(p)}
               hasUnlimited={hasUnlimited}
               isFavorited={favoriteSet.has(p.id)}
               isSignedIn={isSignedIn}
@@ -164,9 +223,9 @@ export function PromptGrid({
       {openPrompt && (
         <PromptDialog
           prompt={openPrompt}
-          open={openIndex !== null}
+          open
           onOpenChange={(next) => {
-            if (!next) setOpenIndex(null);
+            if (!next) closePrompt();
           }}
           onPrev={goPrev}
           onNext={goNext}

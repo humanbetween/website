@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -7,7 +8,7 @@ import { PricingBanner } from "@/components/site/PricingBanner";
 import { HomeCtaBanner } from "@/components/site/HomeCtaBanner";
 import { getCurrentAccess } from "@/lib/access";
 import { getFavoritePromptIds } from "@/lib/favorites";
-import { getActiveCategoryKeys } from "@/lib/prompts/queries";
+import { getActiveCategoryKeys, resolvePromptRef } from "@/lib/prompts/queries";
 import {
   getPricingBanner,
   getPromoCard,
@@ -16,6 +17,46 @@ import {
 } from "@/lib/site-settings";
 
 export const dynamic = "force-dynamic";
+
+// A shared link is /?prompt=<slug> — give it a per-prompt preview (title +
+// thumbnail) instead of the generic site card.
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ prompt?: string | string[] }>;
+}): Promise<Metadata> {
+  const sp = await searchParams;
+  const ref = typeof sp.prompt === "string" ? sp.prompt : null;
+  if (!ref) return {};
+  const prompt = await resolvePromptRef(ref).catch(() => null);
+  if (!prompt || !prompt.isPublished) return {};
+
+  const isImg = /\.(jpe?g|png|webp|avif|gif)(\?|$)/i.test(prompt.videoUrl);
+  const image =
+    prompt.thumbnailUrl ??
+    (isImg ? prompt.videoUrl : null) ??
+    prompt.referenceImageUrl ??
+    undefined;
+  const title = `${prompt.title} — Human Prompts`;
+  const description =
+    prompt.description || "A premium AI prompt from Human Prompts.";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      ...(image ? { images: [image] } : {}),
+    },
+    twitter: {
+      card: image ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(image ? { images: [image] } : {}),
+    },
+  };
+}
 
 export default async function HomePage() {
   // Settle independently so one failing query doesn't take down the whole page.

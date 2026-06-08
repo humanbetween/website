@@ -4,25 +4,26 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
 import { canAccessPrompt } from "@/lib/access";
-import { getPromptById } from "@/lib/prompts/queries";
+import { resolvePromptRef } from "@/lib/prompts/queries";
 import type { Category, PromptDetail } from "@/lib/prompts/types";
 
 export const dynamic = "force-dynamic";
 
-const idSchema = z.string().uuid();
+// Accepts a UUID or a title slug.
+const refSchema = z.string().min(1).max(120);
 
 export async function GET(
   _request: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
   const { id } = await ctx.params;
-  const parsed = idSchema.safeParse(id);
+  const parsed = refSchema.safeParse(id);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Bad id" }, { status: 400 });
+    return NextResponse.json({ error: "Bad ref" }, { status: 400 });
   }
 
   try {
-    const prompt = await getPromptById(parsed.data);
+    const prompt = await resolvePromptRef(parsed.data);
     if (!prompt) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
