@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
 import type { PromptListItem } from "@/lib/prompts/types";
 import { useCategoryLabel } from "./CategoriesContext";
+import { useFreeCopy } from "./FreeCopyProvider";
 import { FavoriteButton } from "./FavoriteButton";
 
 const CARD_ASPECT = "4 / 3";
@@ -25,6 +26,7 @@ export function PromptCard({
   isSignedIn?: boolean;
 }) {
   const router = useRouter();
+  const { tryConsume } = useFreeCopy();
   const [copied, setCopied] = useState(false);
   const primaryCategory = prompt.categories[0];
   const categoryLabel = useCategoryLabel(primaryCategory);
@@ -43,6 +45,7 @@ export function PromptCard({
       return;
     }
     if (prompt.promptText) {
+      if (!tryConsume()) return; // free-copy limit reached → paywall shown
       try {
         await navigator.clipboard.writeText(prompt.promptText);
         setCopied(true);

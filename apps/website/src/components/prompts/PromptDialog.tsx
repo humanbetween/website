@@ -13,6 +13,7 @@ import {
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
 import type { PromptDetail, PromptListItem } from "@/lib/prompts/types";
 import { useCategoryLabel } from "./CategoriesContext";
+import { useFreeCopy } from "./FreeCopyProvider";
 
 type Props = {
   prompt: PromptListItem;
@@ -31,6 +32,7 @@ export function PromptDialog({
 }: Props) {
   const [detail, setDetail] = useState<PromptDetail | null>(null);
   const [copied, setCopied] = useState(false);
+  const { tryConsume } = useFreeCopy();
   const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   function onTouchStart(e: React.TouchEvent) {
@@ -74,6 +76,7 @@ export function PromptDialog({
   async function onCopy() {
     const text = detail?.promptText ?? prompt.promptText;
     if (!text) return;
+    if (!tryConsume()) return; // free-copy limit reached → paywall shown
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);

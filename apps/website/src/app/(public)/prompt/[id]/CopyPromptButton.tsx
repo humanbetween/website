@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { Copy, Check } from "lucide-react";
+import { useFreeCopy } from "@/components/prompts/FreeCopyProvider";
 
 export function CopyPromptButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
+  const { tryConsume } = useFreeCopy();
 
   async function onClick() {
+    if (!tryConsume()) return; // free-copy limit reached → paywall shown
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
