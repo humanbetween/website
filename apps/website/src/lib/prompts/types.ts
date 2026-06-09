@@ -76,6 +76,7 @@ export type PromptListItem = {
   hasWebsite: boolean;
   // Set only for creator-submitted prompts — shown as "by <name>" on the card.
   creatorName: string | null;
+  creatorAvatarUrl: string | null;
 };
 
 export type PromptDetail = PromptListItem & {
@@ -123,6 +124,7 @@ export function rowToListItem(p: PromptRow): PromptListItem {
     websiteUrl: p.isFree ? p.websiteUrl : null,
     hasWebsite: !!p.websiteUrl,
     creatorName: null,
+    creatorAvatarUrl: null,
   };
 }
 

@@ -246,6 +246,7 @@ export const affiliateAccounts = pgTable(
     code: text("code").notNull(),
     status: text("status").notNull().default("active"), // "active" | "suspended"
     commissionRateBps: integer("commission_rate_bps").notNull().default(1000),
+    avatarUrl: text("avatar_url"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

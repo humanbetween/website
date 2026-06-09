@@ -146,6 +146,8 @@ export function PromptDialog({
   const accessText = detail?.promptText ?? prompt.promptText;
   const websiteUrl = detail?.websiteUrl ?? prompt.websiteUrl;
   const creatorName = prompt.creatorName ?? detail?.creatorName ?? null;
+  const creatorAvatar =
+    prompt.creatorAvatarUrl ?? detail?.creatorAvatarUrl ?? null;
   const hasAccess = !!accessText || !!websiteUrl;
   const showUnlockCta = detail !== null && !detail.canAccess;
   const primaryCategory = prompt.categories[0];
@@ -165,12 +167,6 @@ export function PromptDialog({
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground mt-0.5">
               {categoryLabel ?? "Prompt"}
-              {creatorName && (
-                <>
-                  {" · "}
-                  <span className="text-sky-400">by {creatorName}</span>
-                </>
-              )}
             </DialogDescription>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -279,6 +275,21 @@ export function PromptDialog({
               </div>
             )}
           </div>
+
+          {creatorName && (
+            <div className="flex items-center gap-3 px-5 py-4 border-t border-border/40">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={creatorAvatar || "/creator-default.svg"}
+                alt=""
+                className="h-11 w-11 rounded-xl object-cover border border-border/40 shrink-0"
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">{creatorName}</p>
+                <p className="text-xs text-muted-foreground">Author</p>
+              </div>
+            </div>
+          )}
 
           {(prompt.tools.length > 0 || prompt.tags.length > 0) && (
             <div className="px-5 py-4 border-t border-border/40 grid sm:grid-cols-2 gap-4">

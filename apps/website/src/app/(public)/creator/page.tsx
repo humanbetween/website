@@ -16,6 +16,7 @@ import {
 import { maskEmail } from "@/lib/utils";
 import { ReferralLink } from "./ReferralLink";
 import { ShareLinkButton } from "./ShareLinkButton";
+import { CreatorAvatar } from "./CreatorAvatar";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,16 @@ export default async function CreatorDashboardPage() {
           support to reactivate.
         </div>
       )}
+
+      <AdminCard title="Profile photo" className="p-5">
+        <div className="px-5 pb-5 pt-1">
+          <CreatorAvatar avatarUrl={account.avatarUrl} />
+          <p className="text-xs text-muted-foreground mt-3">
+            Shown on your products in the library. A default is used until you
+            add one.
+          </p>
+        </div>
+      </AdminCard>
 
       <AdminCard title="Your referral link" className="p-5">
         <div className="px-5 pb-5 pt-1 flex flex-col gap-2">

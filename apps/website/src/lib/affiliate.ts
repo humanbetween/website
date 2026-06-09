@@ -8,6 +8,7 @@ export type AffiliateAccount = {
   code: string;
   status: string;
   commissionRateBps: number;
+  avatarUrl: string | null;
 };
 
 export function commissionFor(saleCents: number, rateBps: number): number {
@@ -42,6 +43,7 @@ export async function resolveAffiliate(
       code: schema.affiliateAccounts.code,
       status: schema.affiliateAccounts.status,
       commissionRateBps: schema.affiliateAccounts.commissionRateBps,
+      avatarUrl: schema.affiliateAccounts.avatarUrl,
     })
     .from(schema.affiliateAccounts)
     .where(eq(schema.affiliateAccounts.userId, userId))
@@ -58,6 +60,7 @@ export async function resolveAffiliateByCode(
       code: schema.affiliateAccounts.code,
       status: schema.affiliateAccounts.status,
       commissionRateBps: schema.affiliateAccounts.commissionRateBps,
+      avatarUrl: schema.affiliateAccounts.avatarUrl,
     })
     .from(schema.affiliateAccounts)
     .where(eq(schema.affiliateAccounts.code, code))

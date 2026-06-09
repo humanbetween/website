@@ -148,12 +148,23 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     ),
   ];
   const creatorNames = new Map<string, string | null>();
+  const creatorAvatars = new Map<string, string | null>();
   if (creatorIds.length) {
-    const us = await db
-      .select({ id: schema.users.id, name: schema.users.name })
-      .from(schema.users)
-      .where(inArray(schema.users.id, creatorIds));
+    const [us, accts] = await Promise.all([
+      db
+        .select({ id: schema.users.id, name: schema.users.name })
+        .from(schema.users)
+        .where(inArray(schema.users.id, creatorIds)),
+      db
+        .select({
+          userId: schema.affiliateAccounts.userId,
+          avatarUrl: schema.affiliateAccounts.avatarUrl,
+        })
+        .from(schema.affiliateAccounts)
+        .where(inArray(schema.affiliateAccounts.userId, creatorIds)),
+    ]);
     for (const u of us) creatorNames.set(u.id, u.name);
+    for (const a of accts) creatorAvatars.set(a.userId, a.avatarUrl);
   }
 
   const items: PromptListItem[] = page.map((r) => ({
@@ -177,6 +188,9 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     hasWebsite: !!r.websiteUrl,
     creatorName: r.createdByUserId
       ? creatorNames.get(r.createdByUserId) ?? null
+      : null,
+    creatorAvatarUrl: r.createdByUserId
+      ? creatorAvatars.get(r.createdByUserId) ?? null
       : null,
   }));
 

@@ -42,15 +42,24 @@ export async function GET(
       userId: session?.user.id ?? null,
     });
 
-    const creatorName = prompt.createdByUserId
-      ? (
-          await db
-            .select({ name: schema.users.name })
-            .from(schema.users)
-            .where(eq(schema.users.id, prompt.createdByUserId))
-            .limit(1)
-        )[0]?.name ?? null
-      : null;
+    let creatorName: string | null = null;
+    let creatorAvatarUrl: string | null = null;
+    if (prompt.createdByUserId) {
+      const [u, acct] = await Promise.all([
+        db
+          .select({ name: schema.users.name })
+          .from(schema.users)
+          .where(eq(schema.users.id, prompt.createdByUserId))
+          .limit(1),
+        db
+          .select({ avatarUrl: schema.affiliateAccounts.avatarUrl })
+          .from(schema.affiliateAccounts)
+          .where(eq(schema.affiliateAccounts.userId, prompt.createdByUserId))
+          .limit(1),
+      ]);
+      creatorName = u[0]?.name ?? null;
+      creatorAvatarUrl = acct[0]?.avatarUrl ?? null;
+    }
 
     const payload: PromptDetail = {
       id: prompt.id,
@@ -72,6 +81,7 @@ export async function GET(
       websiteUrl: canAccess ? prompt.websiteUrl : null,
       hasWebsite: !!prompt.websiteUrl,
       creatorName,
+      creatorAvatarUrl,
       canAccess,
     };
 
