@@ -201,25 +201,6 @@ export async function sendSubmissionRejectedEmail({
   });
 }
 
-export async function sendAdminNewSubmissionEmail({
-  creatorEmail,
-  title,
-}: {
-  creatorEmail: string;
-  title: string;
-}) {
-  await resend.emails.send({
-    from: `Human Prompts <${fromEmail}>`,
-    to: supportEmail,
-    subject: `📥 New submission: ${title}`,
-    text:
-      `New creator submission awaiting review.\n\n` +
-      `Title: ${title}\n` +
-      `Creator: ${creatorEmail}\n` +
-      `Review: ${SITE}/admin/submissions\n`,
-  });
-}
-
 export async function sendNewSubscriberEmail({
   email,
   name,

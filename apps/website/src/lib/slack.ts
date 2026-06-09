@@ -65,6 +65,62 @@ export async function postContactInquiryToSlack({
   }
 }
 
+export async function postNewSubmissionToSlack({
+  title,
+  creatorEmail,
+  type,
+}: {
+  title: string;
+  creatorEmail: string;
+  type: "Prompt" | "Website";
+}) {
+  // Dedicated submissions channel for the team to review creator uploads.
+  const url = process.env.SLACK_SUBMISSIONS_WEBHOOK_URL;
+  if (!url) return;
+
+  const blocks: SlackBlock[] = [
+    {
+      type: "header",
+      text: { type: "plain_text", text: "📥 New project to review", emoji: true },
+    },
+    {
+      type: "section",
+      fields: [
+        { type: "mrkdwn", text: `*Title*\n${esc(title)}` },
+        { type: "mrkdwn", text: `*Type*\n${type}` },
+        { type: "mrkdwn", text: `*Creator*\n<mailto:${creatorEmail}|${esc(creatorEmail)}>` },
+      ],
+    },
+    {
+      type: "actions",
+      elements: [
+        {
+          type: "button",
+          text: { type: "plain_text", text: "Review submission", emoji: true },
+          style: "primary",
+          url: "https://humanprompts.ai/admin/submissions",
+        },
+      ],
+    },
+  ];
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: `New project to review: ${esc(title)}`,
+        blocks,
+      }),
+    });
+    if (!res.ok) {
+      console.error("slack webhook returned", res.status, await res.text());
+    }
+  } catch (err) {
+    console.error("slack submission post failed", err);
+  }
+}
+
 export async function postNewSubscriberToSlack({
   email,
   name,

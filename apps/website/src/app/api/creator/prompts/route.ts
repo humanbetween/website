@@ -4,10 +4,8 @@ import { auth } from "@/lib/auth";
 import { resolveAffiliate } from "@/lib/affiliate";
 import { creatorSubmitSchema } from "@/lib/prompts/schema";
 import { createSubmission } from "@/lib/submissions";
-import {
-  sendSubmissionReceivedEmail,
-  sendAdminNewSubmissionEmail,
-} from "@/lib/resend";
+import { sendSubmissionReceivedEmail } from "@/lib/resend";
+import { postNewSubmissionToSlack } from "@/lib/slack";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -45,10 +43,12 @@ export async function POST(request: Request) {
       title: parsed.data.title,
     }).catch((err) => console.error("submission received email failed", err));
   }
-  await sendAdminNewSubmissionEmail({
-    creatorEmail: session.user.email ?? "unknown",
+  // Team notification: Slack instead of email.
+  await postNewSubmissionToSlack({
     title: parsed.data.title,
-  }).catch((err) => console.error("admin new submission email failed", err));
+    creatorEmail: session.user.email ?? "unknown",
+    type: parsed.data.websiteUrl ? "Website" : "Prompt",
+  }).catch((err) => console.error("submission slack post failed", err));
 
   return NextResponse.json({ id });
 }
