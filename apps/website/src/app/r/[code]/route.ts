@@ -18,7 +18,14 @@ export async function GET(
   if (limited) return limited;
 
   const { code } = await ctx.params;
-  const res = NextResponse.redirect(appUrl("/"));
+
+  // Optional ?p=<slug> deep-links straight to a product (still sets the cookie),
+  // so a creator can share a link to their own project that also credits them.
+  const slug = new URL(request.url).searchParams.get("p");
+  const safeSlug =
+    slug && /^[a-z0-9-]{1,80}$/.test(slug) ? slug : null;
+  const dest = safeSlug ? `/?prompt=${safeSlug}` : "/";
+  const res = NextResponse.redirect(appUrl(dest));
 
   const affiliate = await resolveAffiliateByCode(code).catch(() => null);
   if (affiliate && affiliate.status === "active") {

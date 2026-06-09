@@ -10,6 +10,7 @@ import {
   LineChart,
   Heart,
   Megaphone,
+  Inbox,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -67,6 +68,12 @@ const NAV: NavItem[] = [
     match: (p) => p.startsWith("/admin/creators"),
   },
   {
+    href: "/admin/submissions",
+    label: "Submissions",
+    icon: Inbox,
+    match: (p) => p.startsWith("/admin/submissions"),
+  },
+  {
     href: "/admin/settings",
     label: "Settings",
     icon: Settings,
@@ -74,7 +81,11 @@ const NAV: NavItem[] = [
   },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({
+  pendingSubmissions = 0,
+}: {
+  pendingSubmissions?: number;
+}) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -106,7 +117,12 @@ export function AdminSidebar() {
               }
             >
               <Icon className="h-4 w-4" />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.href === "/admin/submissions" && pendingSubmissions > 0 && (
+                <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-foreground text-background text-[11px] font-medium tabular-nums">
+                  {pendingSubmissions}
+                </span>
+              )}
             </Link>
           );
         })}

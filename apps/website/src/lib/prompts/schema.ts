@@ -41,6 +41,18 @@ export type PromptFormValues = z.infer<typeof promptFormSchema>;
 
 export const promptPatchSchema = promptFormSchema.partial();
 
+// Creators submit the same content but never set price/free/publish — the
+// server forces those. Same strong constraints (title, video, ≥1 category).
+export const creatorSubmitSchema = promptFormSchema.omit({
+  priceCents: true,
+  isFree: true,
+  isPublished: true,
+});
+
+export type CreatorSubmitValues = z.infer<typeof creatorSubmitSchema>;
+
+export const creatorPatchSchema = creatorSubmitSchema.partial();
+
 export const uploadUrlSchema = z.object({
   kind: z.enum(["video", "asset"]),
   contentType: z.string().min(3).max(120),

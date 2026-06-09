@@ -78,6 +78,13 @@
       "when": 1780969623006,
       "tag": "0010_vengeful_gwen_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1780972539934,
+      "tag": "0011_noisy_sandman",
+      "breakpoints": true
     }
   ]
 }

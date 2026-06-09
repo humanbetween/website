@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { Users, BadgeCheck, Wallet, CalendarClock } from "lucide-react";
+import { Users, BadgeCheck, Wallet, CalendarClock, Plus, Pencil } from "lucide-react";
 import { requireCreator } from "@/lib/creator";
 import { getCreatorStats, getReferredCustomers } from "@/lib/affiliate";
+import { getMySubmissions } from "@/lib/submissions";
 import { appUrl } from "@/lib/stripe";
+import { slugify } from "@/lib/prompts/slug";
 import {
   AdminPageHeader,
   AdminCard,
@@ -13,14 +15,16 @@ import {
 } from "@/components/admin/AdminShell";
 import { maskEmail } from "@/lib/utils";
 import { ReferralLink } from "./ReferralLink";
+import { ShareLinkButton } from "./ShareLinkButton";
 
 export const dynamic = "force-dynamic";
 
 export default async function CreatorDashboardPage() {
   const { account } = await requireCreator();
-  const [stats, customers] = await Promise.all([
+  const [stats, customers, submissions] = await Promise.all([
     getCreatorStats(account.userId),
     getReferredCustomers(account.userId),
+    getMySubmissions(account.userId),
   ]);
   const link = appUrl(`/r/${account.code}`);
   const suspended = account.status !== "active";
@@ -81,6 +85,67 @@ export default async function CreatorDashboardPage() {
           icon={CalendarClock}
         />
       </div>
+
+      <AdminCard
+        title="Your projects"
+        subtitle="Upload a prompt or website — we review it before it goes live."
+        right={
+          <Link
+            href="/creator/submit"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-xs font-medium hover:bg-foreground/90 transition-colors"
+          >
+            <Plus className="h-3.5 w-3.5" /> Submit a project
+          </Link>
+        }
+      >
+        {submissions.length === 0 ? (
+          <p className="px-5 py-10 text-center text-sm text-muted-foreground">
+            No projects yet. Submit your first one.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border/20">
+            {submissions.map((s) => {
+              const editable =
+                s.submissionStatus === "pending" ||
+                s.submissionStatus === "rejected";
+              return (
+                <li
+                  key={s.id}
+                  className="flex items-center gap-3 px-5 py-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium truncate">{s.title}</span>
+                      {statusBadge(s.submissionStatus)}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {timeAgo(s.createdAt)}
+                      {s.submissionStatus === "rejected" && s.reviewNotes
+                        ? ` · ${s.reviewNotes}`
+                        : ""}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {s.submissionStatus === "approved" && (
+                      <ShareLinkButton
+                        url={appUrl(`/r/${account.code}?p=${slugify(s.title)}`)}
+                      />
+                    )}
+                    {editable && (
+                      <Link
+                        href={`/creator/submissions/${s.id}/edit`}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground text-xs font-medium transition-colors"
+                      >
+                        <Pencil className="h-3.5 w-3.5" /> Edit
+                      </Link>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </AdminCard>
 
       <AdminCard
         title="Referred customers"

@@ -23,9 +23,12 @@ import { readableBytes } from "@/lib/upload/strategy";
 type Props = {
   initial?: Partial<PromptFormValues> & { id?: string };
   mode: "create" | "edit";
+  /** "creator" hides admin-only controls and posts to the creator endpoints. */
+  audience?: "admin" | "creator";
 };
 
-export function PromptForm({ initial, mode }: Props) {
+export function PromptForm({ initial, mode, audience = "admin" }: Props) {
+  const isCreator = audience === "creator";
   const [availableCategories, setAvailableCategories] = useState<PromptCategory[]>(
     () => [...DEFAULT_CATEGORIES],
   );
@@ -205,10 +208,8 @@ export function PromptForm({ initial, mode }: Props) {
     setSubmitting(true);
     setError(null);
     try {
-      const endpoint =
-        mode === "create"
-          ? "/api/admin/prompts"
-          : `/api/admin/prompts/${initial?.id}`;
+      const base = isCreator ? "/api/creator/prompts" : "/api/admin/prompts";
+      const endpoint = mode === "create" ? base : `${base}/${initial?.id}`;
       const method = mode === "create" ? "POST" : "PATCH";
       const res = await fetch(endpoint, {
         method,
@@ -219,7 +220,7 @@ export function PromptForm({ initial, mode }: Props) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error ?? "Save failed");
       }
-      router.push("/admin");
+      router.push(isCreator ? "/creator" : "/admin");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
@@ -386,31 +387,35 @@ export function PromptForm({ initial, mode }: Props) {
         />
       </Field>
 
-      <Field
-        label="Visible on the public site"
-        hint="Turn off to hide this prompt from the main library and search. Existing direct links also return 404 for non-admins."
-      >
-        <label className="inline-flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            {...register("isPublished")}
-            className="h-4 w-4"
-          />
-          <span className="text-muted-foreground">Published</span>
-        </label>
-      </Field>
+      {!isCreator && (
+        <Field
+          label="Visible on the public site"
+          hint="Turn off to hide this prompt from the main library and search. Existing direct links also return 404 for non-admins."
+        >
+          <label className="inline-flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              {...register("isPublished")}
+              className="h-4 w-4"
+            />
+            <span className="text-muted-foreground">Published</span>
+          </label>
+        </Field>
+      )}
 
-      <Field
-        label="Free for everyone"
-        hint="When on, this prompt is accessible without an active subscription. Use for teasers."
-      >
-        <label className="inline-flex items-center gap-2 text-sm">
-          <input type="checkbox" {...register("isFree")} className="h-4 w-4" />
-          <span className="text-muted-foreground">
-            Unlock without a subscription
-          </span>
-        </label>
-      </Field>
+      {!isCreator && (
+        <Field
+          label="Free for everyone"
+          hint="When on, this prompt is accessible without an active subscription. Use for teasers."
+        >
+          <label className="inline-flex items-center gap-2 text-sm">
+            <input type="checkbox" {...register("isFree")} className="h-4 w-4" />
+            <span className="text-muted-foreground">
+              Unlock without a subscription
+            </span>
+          </label>
+        </Field>
+      )}
 
       <Field label="Categories" error={errors.categories?.message as string}>
         <Controller
@@ -451,19 +456,21 @@ export function PromptForm({ initial, mode }: Props) {
                       {parent.label}
                     </button>
                   ))}
-                  <button
-                    type="button"
-                    onClick={() => addCategoryInline(value, field.onChange)}
-                    disabled={addingCategory}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs bg-card/40 border border-dashed border-border/60 text-muted-foreground hover:text-foreground hover:border-border disabled:opacity-50"
-                  >
-                    {addingCategory ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <Plus className="h-3 w-3" />
-                    )}
-                    Add category
-                  </button>
+                  {!isCreator && (
+                    <button
+                      type="button"
+                      onClick={() => addCategoryInline(value, field.onChange)}
+                      disabled={addingCategory}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs bg-card/40 border border-dashed border-border/60 text-muted-foreground hover:text-foreground hover:border-border disabled:opacity-50"
+                    >
+                      {addingCategory ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Plus className="h-3 w-3" />
+                      )}
+                      Add category
+                    </button>
+                  )}
                 </div>
 
                 {/* Row 2: subcategories of the selected parents, horizontal */}
@@ -484,22 +491,24 @@ export function PromptForm({ initial, mode }: Props) {
                             {sub.label}
                           </button>
                         ))}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            addSubcategoryInline(parent.key, value, field.onChange)
-                          }
-                          disabled={addingCategory}
-                          title={`Add subcategory under ${parent.label}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] bg-card/40 border border-dashed border-border/60 text-muted-foreground hover:text-foreground hover:border-border disabled:opacity-50"
-                        >
-                          {addingCategory ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Plus className="h-3 w-3" />
-                          )}
-                          Add new
-                        </button>
+                        {!isCreator && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              addSubcategoryInline(parent.key, value, field.onChange)
+                            }
+                            disabled={addingCategory}
+                            title={`Add subcategory under ${parent.label}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-[11px] bg-card/40 border border-dashed border-border/60 text-muted-foreground hover:text-foreground hover:border-border disabled:opacity-50"
+                          >
+                            {addingCategory ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Plus className="h-3 w-3" />
+                            )}
+                            Add new
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>

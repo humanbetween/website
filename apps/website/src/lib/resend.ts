@@ -117,6 +117,109 @@ export async function sendCreatorWelcomeEmail({
   if (error) throw new Error(`creator welcome email: ${error.message}`);
 }
 
+export async function sendSubmissionReceivedEmail({
+  to,
+  title,
+}: {
+  to: string;
+  title: string;
+}) {
+  await resend.emails.send({
+    from: `Human Prompts <${fromEmail}>`,
+    to,
+    subject: "We got your submission — it's under review",
+    text:
+      `Thanks for submitting "${title}".\n\n` +
+      `Our team will review it shortly. You'll get an email as soon as it's ` +
+      `approved and live — or with notes if we need a tweak.\n\n` +
+      `Track it: ${SITE}/creator\n\n` +
+      `— Human Prompts · humanprompts.ai`,
+    html: brandEmailShell({
+      eyebrow: "Submission received",
+      heading: "It's under review \u{1F440}",
+      bodyHtml: `Thanks for submitting <strong style="color:#fafaf9">${title}</strong>. We'll review it shortly and email you as soon as it's live — or with notes if it needs a tweak.`,
+      ctaLabel: "View your projects →",
+      ctaUrl: `${SITE}/creator`,
+    }),
+  });
+}
+
+export async function sendSubmissionApprovedEmail({
+  to,
+  title,
+  url,
+}: {
+  to: string;
+  title: string;
+  url: string;
+}) {
+  await resend.emails.send({
+    from: `Human Prompts <${fromEmail}>`,
+    to,
+    subject: `"${title}" is live on Human Prompts`,
+    text:
+      `Good news — "${title}" was approved and is now live in the library.\n\n` +
+      `See it: ${url}\n` +
+      `Share your referral link from your dashboard to earn on every sale: ${SITE}/creator\n\n` +
+      `— Human Prompts · humanprompts.ai`,
+    html: brandEmailShell({
+      eyebrow: "Approved",
+      heading: "You're live \u{1F389}",
+      bodyHtml: `<strong style="color:#fafaf9">${title}</strong> was approved and is now in the library. Share your referral link to earn on every sale it drives.`,
+      ctaLabel: "View it live →",
+      ctaUrl: url,
+      secondaryHtml: `Grab your referral link on your <a href="${SITE}/creator" style="color:#78716c;text-decoration:underline">creator dashboard</a>.`,
+    }),
+  });
+}
+
+export async function sendSubmissionRejectedEmail({
+  to,
+  title,
+  notes,
+}: {
+  to: string;
+  title: string;
+  notes: string;
+}) {
+  await resend.emails.send({
+    from: `Human Prompts <${fromEmail}>`,
+    to,
+    subject: `A quick change needed on "${title}"`,
+    text:
+      `Thanks for submitting "${title}". Before it goes live, we'd like a tweak:\n\n` +
+      `${notes}\n\n` +
+      `Edit and resubmit here: ${SITE}/creator\n\n` +
+      `— Human Prompts · humanprompts.ai`,
+    html: brandEmailShell({
+      eyebrow: "Changes requested",
+      heading: "Almost there",
+      bodyHtml: `Thanks for submitting <strong style="color:#fafaf9">${title}</strong>. Before it goes live, we'd like a tweak:<br><br><span style="color:#d6d3d1">${notes}</span>`,
+      ctaLabel: "Edit & resubmit →",
+      ctaUrl: `${SITE}/creator`,
+    }),
+  });
+}
+
+export async function sendAdminNewSubmissionEmail({
+  creatorEmail,
+  title,
+}: {
+  creatorEmail: string;
+  title: string;
+}) {
+  await resend.emails.send({
+    from: `Human Prompts <${fromEmail}>`,
+    to: supportEmail,
+    subject: `📥 New submission: ${title}`,
+    text:
+      `New creator submission awaiting review.\n\n` +
+      `Title: ${title}\n` +
+      `Creator: ${creatorEmail}\n` +
+      `Review: ${SITE}/admin/submissions\n`,
+  });
+}
+
 export async function sendNewSubscriberEmail({
   email,
   name,

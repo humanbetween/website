@@ -130,6 +130,13 @@ export const prompts = pgTable(
     favoriteCount: integer("favorite_count").notNull().default(0),
     displayOrder: integer("display_order").notNull().default(0),
     isPublished: boolean("is_published").notNull().default(true),
+    // Creator submissions: who uploaded it and its review state. Admin-created
+    // prompts have a null author and default to "approved".
+    createdByUserId: text("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    submissionStatus: text("submission_status").notNull().default("approved"),
+    reviewNotes: text("review_notes"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
