@@ -194,6 +194,24 @@ export function AutoPlayMedia({
           className="absolute inset-0 h-full w-full object-cover"
         />
       )}
+      {sound && !isImage && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleMute();
+          }}
+          aria-label={muted ? "Unmute" : "Mute"}
+          title={muted ? "Sound available — tap to unmute" : "Mute"}
+          className="absolute bottom-2 right-2 h-7 w-7 inline-flex items-center justify-center rounded-full bg-black/45 text-white/90 hover:bg-black/70 backdrop-blur-sm transition-colors"
+        >
+          {muted ? (
+            <VolumeX className="h-3.5 w-3.5" />
+          ) : (
+            <Volume2 className="h-3.5 w-3.5" />
+          )}
+        </button>
+      )}
     </div>
   );
 }
