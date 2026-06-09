@@ -149,12 +149,7 @@ export function PromptCard({
                 : "Copy prompt"
               : "Locked — open"
           }
-          className={
-            "shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[11px] font-medium transition-colors " +
-            (accessible
-              ? "bg-foreground/5 border border-border/60 text-muted-foreground hover:bg-foreground hover:text-background hover:border-foreground"
-              : "bg-white text-black hover:bg-white/90")
-          }
+          className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-foreground/5 border border-border/60 text-[11px] text-muted-foreground hover:bg-foreground hover:text-background hover:border-foreground transition-colors"
         >
           {accessible ? (
             prompt.hasWebsite ? (
@@ -169,10 +164,7 @@ export function PromptCard({
               </>
             )
           ) : (
-            <>
-              <Lock className="h-3 w-3" />
-              Premium
-            </>
+            <Lock className="h-3 w-3" />
           )}
         </button>
       </div>
