@@ -45,6 +45,7 @@ export async function POST(request: Request) {
         thumbnailUrl: parsed.data.thumbnailUrl ?? null,
         referenceImageUrl: parsed.data.referenceImageUrl ?? null,
         isPublished: parsed.data.isPublished,
+        hasAudio: parsed.data.hasAudio,
         assets: parsed.data.assets,
         categories: parsed.data.categories,
         tags: parsed.data.tags,

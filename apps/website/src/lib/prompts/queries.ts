@@ -186,6 +186,7 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     promptText: r.isFree || args.hasUnlimited ? r.promptText : null,
     websiteUrl: r.isFree || args.hasUnlimited ? r.websiteUrl : null,
     hasWebsite: !!r.websiteUrl,
+    hasAudio: r.hasAudio,
     creatorName: r.createdByUserId
       ? creatorNames.get(r.createdByUserId) ?? null
       : null,

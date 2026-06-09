@@ -130,6 +130,8 @@ export const prompts = pgTable(
     favoriteCount: integer("favorite_count").notNull().default(0),
     displayOrder: integer("display_order").notNull().default(0),
     isPublished: boolean("is_published").notNull().default(true),
+    // When true, the product video plays with sound (via an unmute control).
+    hasAudio: boolean("has_audio").notNull().default(false),
     // Creator submissions: who uploaded it and its review state. Admin-created
     // prompts have a null author and default to "approved".
     createdByUserId: text("created_by_user_id").references(() => users.id, {

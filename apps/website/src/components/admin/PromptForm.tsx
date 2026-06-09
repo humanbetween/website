@@ -141,6 +141,7 @@ export function PromptForm({ initial, mode, audience = "admin" }: Props) {
       thumbnailUrl: initial?.thumbnailUrl ?? null,
       referenceImageUrl: initial?.referenceImageUrl ?? null,
       isPublished: initial?.isPublished ?? true,
+      hasAudio: initial?.hasAudio ?? (mode === "create"),
       assets: initial?.assets ?? [],
       categories: initial?.categories ?? [],
       tags: initial?.tags ?? [],
@@ -297,6 +298,16 @@ export function PromptForm({ initial, mode, audience = "admin" }: Props) {
             />
           </div>
         )}
+      </Field>
+
+      <Field
+        label="Sound"
+        hint="When on, viewers can unmute the video in the product popup. It always starts muted (browser rule). Leave off for silent clips."
+      >
+        <label className="inline-flex items-center gap-2 text-sm">
+          <input type="checkbox" {...register("hasAudio")} className="h-4 w-4" />
+          <span className="text-muted-foreground">Play with sound</span>
+        </label>
       </Field>
 
       <Field

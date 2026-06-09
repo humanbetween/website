@@ -74,6 +74,8 @@ export type PromptListItem = {
   // show a (locked) "Visit website" affordance even when the URL is withheld.
   websiteUrl: string | null;
   hasWebsite: boolean;
+  // When true, the product video can be unmuted in the dialog.
+  hasAudio: boolean;
   // Set only for creator-submitted prompts — shown as "by <name>" on the card.
   creatorName: string | null;
   creatorAvatarUrl: string | null;
@@ -123,6 +125,7 @@ export function rowToListItem(p: PromptRow): PromptListItem {
     promptText: p.isFree ? p.promptText : null,
     websiteUrl: p.isFree ? p.websiteUrl : null,
     hasWebsite: !!p.websiteUrl,
+    hasAudio: false,
     creatorName: null,
     creatorAvatarUrl: null,
   };

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Volume2, VolumeX } from "lucide-react";
 import { useLazyAutoplay } from "@/lib/lazy-autoplay";
 
 const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif)(\?|$)/i;
@@ -26,6 +27,12 @@ export type AutoPlayMediaProps = {
    * the same slot without cropping or layout jumps.
    */
   fit?: boolean;
+  /**
+   * When true (fit mode only), show a mute/unmute control. Video still
+   * autoplays muted — browsers block autoplay with sound — and the viewer
+   * clicks to hear it.
+   */
+  sound?: boolean;
 };
 
 export function AutoPlayMedia({
@@ -36,9 +43,24 @@ export function AutoPlayMedia({
   className,
   natural = false,
   fit = false,
+  sound = false,
 }: AutoPlayMediaProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isImage = IMAGE_RE.test(src);
+  const [muted, setMuted] = useState(true);
+
+  // Reset to muted whenever the clip changes (e.g. arrow-key navigation).
+  useEffect(() => {
+    setMuted(true);
+  }, [src]);
+
+  function toggleMute() {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = !v.muted;
+    if (!v.muted) v.play().catch(() => {});
+    setMuted(v.muted);
+  }
 
   const containerRef = useLazyAutoplay<HTMLDivElement>((visible) => {
     if (isImage || !videoRef.current) return;
@@ -79,18 +101,34 @@ export function AutoPlayMedia({
             className="block h-full w-full object-contain"
           />
         ) : (
-          <video
-            ref={videoRef}
-            src={src}
-            poster={poster ?? undefined}
-            autoPlay
-            muted
-            playsInline
-            loop
-            preload="metadata"
-            aria-label={alt}
-            className="block h-full w-full object-contain"
-          />
+          <>
+            <video
+              ref={videoRef}
+              src={src}
+              poster={poster ?? undefined}
+              autoPlay
+              muted
+              playsInline
+              loop
+              preload="metadata"
+              aria-label={alt}
+              className="block h-full w-full object-contain"
+            />
+            {sound && (
+              <button
+                type="button"
+                onClick={toggleMute}
+                aria-label={muted ? "Unmute" : "Mute"}
+                className="absolute bottom-3 right-3 h-9 w-9 inline-flex items-center justify-center rounded-full bg-black/55 text-white hover:bg-black/75 backdrop-blur-sm transition-colors"
+              >
+                {muted ? (
+                  <VolumeX className="h-4 w-4" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
+              </button>
+            )}
+          </>
         )}
       </div>
     );

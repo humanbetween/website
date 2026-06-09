@@ -1,0 +1,1 @@
+ALTER TABLE "prompts" ADD COLUMN "has_audio" boolean DEFAULT false NOT NULL;

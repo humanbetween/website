@@ -20,6 +20,7 @@ export async function createSubmission(
       videoUrl: values.videoUrl,
       thumbnailUrl: values.thumbnailUrl ?? null,
       referenceImageUrl: values.referenceImageUrl ?? null,
+      hasAudio: values.hasAudio,
       assets: values.assets,
       categories: values.categories,
       tags: values.tags,

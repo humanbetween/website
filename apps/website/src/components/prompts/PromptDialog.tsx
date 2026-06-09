@@ -259,6 +259,7 @@ export function PromptDialog({
               poster={prompt.thumbnailUrl}
               alt={prompt.title}
               fit
+              sound={detail?.hasAudio ?? prompt.hasAudio}
               className="h-full"
             />
             {prompt.referenceImageUrl && (

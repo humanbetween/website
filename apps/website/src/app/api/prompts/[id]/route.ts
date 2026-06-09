@@ -80,6 +80,7 @@ export async function GET(
       promptText: canAccess ? prompt.promptText : null,
       websiteUrl: canAccess ? prompt.websiteUrl : null,
       hasWebsite: !!prompt.websiteUrl,
+      hasAudio: prompt.hasAudio,
       creatorName,
       creatorAvatarUrl,
       canAccess,

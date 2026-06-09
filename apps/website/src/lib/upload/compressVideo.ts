@@ -37,7 +37,7 @@ async function getFFmpeg(): Promise<FFmpeg> {
 }
 
 /**
- * Transcode a video to 720p, audio-less, fast-start H.264 in the browser.
+ * Transcode a video to 720p, fast-start H.264 (AAC audio kept) in the browser.
  * Throws on failure so callers can block the upload (no heavy original ships).
  */
 export async function compressVideo(

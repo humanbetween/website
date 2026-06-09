@@ -34,7 +34,8 @@ export function scaledDimensions(
   return { width: even(width), height: even(height) };
 }
 
-/** ffmpeg argv for a 720p, audio-less, fast-start H.264 transcode. */
+/** ffmpeg argv for a 720p, fast-start H.264 transcode that keeps audio (AAC
+ * 128k). Whether the sound actually plays is a per-product toggle in the UI. */
 export function videoFfmpegArgs(input: string, output: string): string[] {
   return [
     "-i",
@@ -47,7 +48,10 @@ export function videoFfmpegArgs(input: string, output: string): string[] {
     "veryfast",
     "-crf",
     "26",
-    "-an",
+    "-c:a",
+    "aac",
+    "-b:a",
+    "128k",
     "-movflags",
     "+faststart",
     "-pix_fmt",

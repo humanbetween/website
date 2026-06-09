@@ -42,6 +42,7 @@ export default async function EditPromptPage({
           videoUrl: prompt.videoUrl,
           thumbnailUrl: prompt.thumbnailUrl,
           referenceImageUrl: prompt.referenceImageUrl,
+          hasAudio: prompt.hasAudio,
           assets: prompt.assets,
           categories: prompt.categories as Category[],
           tags: prompt.tags,
