@@ -67,7 +67,7 @@ export function PromptCard({
           onOpen();
         }
       }}
-      className="group flex flex-col rounded-2xl overflow-hidden bg-card/60 border border-border/40 hover:border-border hover:bg-card/90 transition-colors cursor-pointer"
+      className="group flex flex-col rounded-2xl overflow-hidden bg-card/60 border border-border/40 hover:border-border hover:bg-card/90 hover:-translate-y-1 hover:shadow-xl hover:shadow-black/25 transition-[transform,box-shadow,background-color,border-color] duration-200 ease-out cursor-pointer"
     >
       <div className="relative">
         <AutoPlayMedia
