@@ -1,8 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Copy, Check, Lock, Download, ExternalLink, Share2, Link as LinkIcon } from "lucide-react";
+import {
+  Copy,
+  Check,
+  Lock,
+  Download,
+  ExternalLink,
+  Share2,
+  Link as LinkIcon,
+  ChevronRight,
+  ChevronDown,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -292,31 +302,79 @@ export function PromptDialog({
             </div>
           )}
 
-          {(prompt.tools.length > 0 ||
-            prompt.tags.length > 0 ||
-            prompt.description) && (
-            <div className="px-5 py-4 border-t border-border/40 grid md:grid-cols-2 gap-x-8 gap-y-5">
-              <div className="flex flex-col gap-4">
-                {prompt.tools.length > 0 && (
-                  <ChipGroup title="Use with" items={prompt.tools} />
-                )}
-                {prompt.tags.length > 0 && (
-                  <ChipGroup title="Best for" items={prompt.tags} prefix="#" muted />
-                )}
-              </div>
-              {prompt.description && (
-                <div>
-                  <p className="text-sm font-semibold mb-2">How it works</p>
-                  <p className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">
-                    {prompt.description}
-                  </p>
-                </div>
+          {(prompt.tools.length > 0 || prompt.tags.length > 0) && (
+            <div className="px-5 py-4 border-t border-border/40 grid sm:grid-cols-2 gap-4">
+              {prompt.tools.length > 0 && (
+                <ChipGroup title="Use with" items={prompt.tools} />
               )}
+              {prompt.tags.length > 0 && (
+                <ChipGroup title="Best for" items={prompt.tags} prefix="#" muted />
+              )}
+            </div>
+          )}
+
+          {prompt.description && (
+            <div className="px-5 py-4 border-t border-border/40">
+              <HowItWorks text={prompt.description} />
             </div>
           )}
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Parse a numbered list ("1. … 2. …") into step strings. Returns null when the
+// text isn't a clean numbered list, so we fall back to a plain paragraph.
+function parseSteps(text: string): string[] | null {
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const steps: string[] = [];
+  for (const line of lines) {
+    const m = line.match(/^(\d+)[.)]\s+(.*)$/);
+    if (!m) return null;
+    steps.push(m[2]);
+  }
+  return steps.length >= 2 ? steps : null;
+}
+
+function HowItWorks({ text }: { text: string }) {
+  const steps = parseSteps(text);
+  return (
+    <div>
+      <p className="text-sm font-semibold mb-3">How it works</p>
+      {steps ? (
+        <ol className="flex flex-col md:flex-row md:items-stretch gap-2">
+          {steps.map((s, i) => (
+            <Fragment key={i}>
+              <li className="flex-1 rounded-xl border border-border/40 bg-background/40 p-3 flex flex-col gap-2 min-w-0">
+                <span className="h-6 w-6 shrink-0 rounded-full bg-foreground text-background text-xs font-semibold inline-flex items-center justify-center">
+                  {i + 1}
+                </span>
+                <span className="text-xs text-foreground/80 leading-relaxed">
+                  {s}
+                </span>
+              </li>
+              {i < steps.length - 1 && (
+                <span
+                  aria-hidden
+                  className="flex items-center justify-center text-muted-foreground shrink-0"
+                >
+                  <ChevronRight className="hidden md:block h-4 w-4" />
+                  <ChevronDown className="md:hidden h-4 w-4" />
+                </span>
+              )}
+            </Fragment>
+          ))}
+        </ol>
+      ) : (
+        <p className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">
+          {text}
+        </p>
+      )}
+    </div>
   );
 }
 
