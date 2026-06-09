@@ -381,10 +381,28 @@ export function PromptForm({ initial, mode, audience = "admin" }: Props) {
       <Field label="Description" error={errors.description?.message}>
         <textarea
           {...register("description")}
-          rows={3}
+          rows={6}
           className={inputCls}
           placeholder="One or two sentences shown on the detail page."
         />
+        <button
+          type="button"
+          onClick={() => {
+            const current = watch("description");
+            if (
+              current &&
+              current.trim() &&
+              !window.confirm("Replace the current description with the template?")
+            )
+              return;
+            setValue("description", DESCRIPTION_TEMPLATE, {
+              shouldValidate: true,
+            });
+          }}
+          className="self-start inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-full bg-card/40 border border-dashed border-border/60 text-xs text-muted-foreground hover:text-foreground hover:border-border transition-colors"
+        >
+          <Plus className="h-3 w-3" /> Insert template
+        </button>
       </Field>
 
       {!isCreator && (
@@ -567,6 +585,13 @@ export function PromptForm({ initial, mode, audience = "admin" }: Props) {
 
 const inputCls =
   "w-full px-3 py-2 rounded-lg bg-input/40 border border-border/60 text-sm focus:outline-none focus:border-foreground/40";
+
+// Starting point creators can drop in and then tweak.
+const DESCRIPTION_TEMPLATE = `1. Replace the reference image with your own product in ChatGPT or Nano Banana.
+2. Generate the matching storyboard frames using the template.
+3. Upload the storyboard images into Seedance (BytePlus) as image references.
+4. Copy and paste the provided Seedance prompt.
+5. Generate your final high-end CGI commercial video.`;
 
 function catChip(on: boolean) {
   return on

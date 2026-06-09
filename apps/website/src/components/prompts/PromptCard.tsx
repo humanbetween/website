@@ -113,7 +113,7 @@ export function PromptCard({
                     alt=""
                     className="h-5 w-5 rounded-md object-cover border border-border/40 shrink-0"
                   />
-                  <span className="text-xs font-semibold text-emerald-400 truncate">
+                  <span className="text-xs font-semibold text-sky-400 truncate">
                     {prompt.creatorName}
                   </span>
                 </>
