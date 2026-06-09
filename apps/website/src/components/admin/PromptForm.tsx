@@ -533,7 +533,12 @@ export function PromptForm({ initial, mode }: Props) {
       <div className="flex items-center gap-3">
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || refUploading || videoProgress !== null}
+          title={
+            refUploading || videoProgress !== null
+              ? "Wait for the upload to finish"
+              : undefined
+          }
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-foreground text-background text-sm font-medium hover:bg-foreground/90 disabled:opacity-60"
         >
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
