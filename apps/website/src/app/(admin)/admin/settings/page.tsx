@@ -9,6 +9,7 @@ import {
   Share2,
   Rocket,
   Link2,
+  Tags,
 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import {
@@ -19,6 +20,7 @@ import {
   getSocialLinks,
   getHomeCtaBanner,
   getHeaderCta,
+  getPromptCategories,
 } from "@/lib/site-settings";
 import { AdminPageHeader, AdminCard } from "@/components/admin/AdminShell";
 import { UpdatePasswordForm } from "./UpdatePasswordForm";
@@ -29,21 +31,32 @@ import { HeroSettingsForm } from "./HeroSettingsForm";
 import { SocialLinksForm } from "./SocialLinksForm";
 import { HomeCtaBannerForm } from "./HomeCtaBannerForm";
 import { HeaderCtaForm } from "./HeaderCtaForm";
+import { CategoriesForm } from "./CategoriesForm";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const [session, banner, plans, promo, hero, social, ctaBanner, headerCta] =
-    await Promise.all([
-      auth.api.getSession({ headers: await headers() }),
-      getPricingBanner(),
-      getPricingPlans(),
-      getPromoCard(),
-      getHeroContent(),
-      getSocialLinks(),
-      getHomeCtaBanner(),
-      getHeaderCta(),
-    ]);
+  const [
+    session,
+    banner,
+    plans,
+    promo,
+    hero,
+    social,
+    ctaBanner,
+    headerCta,
+    categories,
+  ] = await Promise.all([
+    auth.api.getSession({ headers: await headers() }),
+    getPricingBanner(),
+    getPricingPlans(),
+    getPromoCard(),
+    getHeroContent(),
+    getSocialLinks(),
+    getHomeCtaBanner(),
+    getHeaderCta(),
+    getPromptCategories(),
+  ]);
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
@@ -129,6 +142,18 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="px-5 py-6">
           <BannerSettingsForm initial={banner} />
+        </div>
+      </AdminCard>
+
+      <AdminCard className="mb-6">
+        <div className="px-5 py-4 border-b border-border/40 flex items-center gap-2">
+          <Tags className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-medium tracking-tight">
+            Categories &amp; subcategories
+          </h2>
+        </div>
+        <div className="px-5 py-6">
+          <CategoriesForm initial={categories} />
         </div>
       </AdminCard>
 

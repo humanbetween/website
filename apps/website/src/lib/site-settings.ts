@@ -243,6 +243,27 @@ export async function addPromptSubcategory(
   return next;
 }
 
+/**
+ * Rename a category/subcategory by its stable key. Only the display label
+ * changes — the key stays the same, so prompts referencing it keep working.
+ */
+export async function renamePromptCategory(
+  key: string,
+  label: string,
+): Promise<PromptCategory[]> {
+  const trimmed = label.trim();
+  if (!trimmed) throw new Error("Label is required");
+  const current = await getPromptCategoriesUncached();
+  if (!current.some((c) => c.key === key)) {
+    throw new Error("Category not found");
+  }
+  const next = current.map((c) =>
+    c.key === key ? { ...c, label: trimmed } : c,
+  );
+  await setSiteSetting("prompt_categories", { categories: next });
+  return next;
+}
+
 async function getPromptCategoriesUncached(): Promise<PromptCategory[]> {
   try {
     const rows = await db
