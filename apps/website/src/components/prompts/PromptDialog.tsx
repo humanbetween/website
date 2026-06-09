@@ -286,7 +286,7 @@ export function PromptDialog({
 
           {prompt.description && (
             <div className="px-5 py-4 border-t border-border/40">
-              <p className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">
+              <p className="max-w-md text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">
                 {prompt.description}
               </p>
             </div>
