@@ -47,10 +47,15 @@ export function CategoriesForm({ initial }: { initial: PromptCategory[] }) {
   const originalLabel = (key: string) =>
     cats.find((c) => c.key === key)?.label ?? "";
 
-  function Row({ cat, indented }: { cat: PromptCategory; indented?: boolean }) {
+  // Inlined (not a nested component) so the input keeps focus while typing —
+  // a child component declared in render remounts every keystroke.
+  const renderRow = (cat: PromptCategory, indented = false) => {
     const changed = (drafts[cat.key] ?? "") !== originalLabel(cat.key);
     return (
-      <div className={`flex items-center gap-2 ${indented ? "pl-5" : ""}`}>
+      <div
+        key={cat.key}
+        className={`flex items-center gap-2 ${indented ? "pl-5" : ""}`}
+      >
         <input
           value={drafts[cat.key] ?? ""}
           onChange={(e) =>
@@ -72,7 +77,7 @@ export function CategoriesForm({ initial }: { initial: PromptCategory[] }) {
         </button>
       </div>
     );
-  }
+  };
 
   const tops = cats.filter((c) => !c.parent);
 
@@ -82,17 +87,12 @@ export function CategoriesForm({ initial }: { initial: PromptCategory[] }) {
         Rename a category or subcategory. The internal key stays the same, so
         existing products keep their tags. Add new ones from the prompt form.
       </p>
-      {tops.map((top) => {
-        const subs = cats.filter((c) => c.parent === top.key);
-        return (
-          <div key={top.key} className="flex flex-col gap-2">
-            <Row cat={top} />
-            {subs.map((s) => (
-              <Row key={s.key} cat={s} indented />
-            ))}
-          </div>
-        );
-      })}
+      {tops.map((top) => (
+        <div key={top.key} className="flex flex-col gap-2">
+          {renderRow(top)}
+          {cats.filter((c) => c.parent === top.key).map((s) => renderRow(s, true))}
+        </div>
+      ))}
     </div>
   );
 }
