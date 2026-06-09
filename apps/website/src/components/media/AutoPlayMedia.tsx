@@ -169,7 +169,7 @@ export function AutoPlayMedia({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full overflow-hidden bg-card ${className ?? ""}`}
+      className={`group/snd relative w-full overflow-hidden bg-card ${className ?? ""}`}
       style={aspectRatio ? { aspectRatio } : undefined}
     >
       {isImage ? (
@@ -203,7 +203,7 @@ export function AutoPlayMedia({
           }}
           aria-label={muted ? "Unmute" : "Mute"}
           title={muted ? "Sound available — tap to unmute" : "Mute"}
-          className="absolute bottom-2 right-2 h-7 w-7 inline-flex items-center justify-center rounded-full bg-black/45 text-white/90 hover:bg-black/70 backdrop-blur-sm transition-colors"
+          className="absolute top-2 left-2 h-7 w-7 inline-flex items-center justify-center rounded-full bg-black/45 text-white/90 hover:bg-black/70 backdrop-blur-sm opacity-100 md:opacity-0 md:group-hover/snd:opacity-100 transition-opacity"
         >
           {muted ? (
             <VolumeX className="h-3.5 w-3.5" />
