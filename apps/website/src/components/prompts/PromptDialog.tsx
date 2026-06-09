@@ -270,6 +270,7 @@ export function PromptDialog({
               alt={prompt.title}
               fit
               sound={detail?.hasAudio ?? prompt.hasAudio}
+              startUnmuted={detail?.hasAudio ?? prompt.hasAudio}
               className="h-full"
             />
             {prompt.referenceImageUrl && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { useLazyAutoplay } from "@/lib/lazy-autoplay";
 
@@ -33,6 +33,12 @@ export type AutoPlayMediaProps = {
    * clicks to hear it.
    */
   sound?: boolean;
+  /**
+   * When true, begin with sound ON (best effort — opening a dialog is a user
+   * gesture, so most browsers allow it; falls back to muted if blocked). The
+   * choice persists across src changes (arrow navigation).
+   */
+  startUnmuted?: boolean;
 };
 
 export function AutoPlayMedia({
@@ -44,15 +50,33 @@ export function AutoPlayMedia({
   natural = false,
   fit = false,
   sound = false,
+  startUnmuted = false,
 }: AutoPlayMediaProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isImage = IMAGE_RE.test(src);
-  const [muted, setMuted] = useState(true);
+  const [muted, setMuted] = useState(() => !startUnmuted);
+  // Latest muted value for callbacks (IntersectionObserver) that close over it.
+  const mutedRef = useRef(muted);
+  mutedRef.current = muted;
 
-  // Reset to muted whenever the clip changes (e.g. arrow-key navigation).
-  useEffect(() => {
-    setMuted(true);
-  }, [src]);
+  // Play honoring the current mute choice. If unmuted autoplay is blocked,
+  // fall back to muted so the clip still plays.
+  const play = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = mutedRef.current;
+    const p = v.play();
+    if (p && typeof p.catch === "function") {
+      p.catch(() => {
+        if (!v.muted) {
+          v.muted = true;
+          mutedRef.current = true;
+          setMuted(true);
+          v.play().catch(() => {});
+        }
+      });
+    }
+  }, []);
 
   function toggleMute() {
     const v = videoRef.current;
@@ -64,27 +88,18 @@ export function AutoPlayMedia({
 
   const containerRef = useLazyAutoplay<HTMLDivElement>((visible) => {
     if (isImage || !videoRef.current) return;
-    if (visible) {
-      videoRef.current.muted = true;
-      videoRef.current.play().catch(() => {});
-    } else {
-      videoRef.current.pause();
-    }
+    if (visible) play();
+    else videoRef.current.pause();
   });
 
-  // When the src changes (e.g. arrow-key navigation in the dialog) the
-  // <video> element is reused — IntersectionObserver doesn't fire again
-  // because nothing entered the viewport, so we kickstart playback here.
+  // When the src changes (e.g. arrow-key navigation in the dialog) the <video>
+  // is reused — IntersectionObserver doesn't fire again, so kickstart here.
+  // The mute choice is preserved across changes (no reset), so sound stays on.
   useEffect(() => {
     if (isImage || !videoRef.current) return;
-    const v = videoRef.current;
-    // React sets the `muted` attribute but not always the property; iOS/Chrome
-    // only allow muted autoplay when the property is true. Force it here.
-    v.muted = true;
-    v.load();
-    const p = v.play();
-    if (p && typeof p.catch === "function") p.catch(() => {});
-  }, [src, isImage]);
+    videoRef.current.load();
+    play();
+  }, [src, isImage, play]);
 
   if (fit) {
     return (
