@@ -291,22 +291,26 @@ export function PromptDialog({
             </div>
           )}
 
-          {(prompt.tools.length > 0 || prompt.tags.length > 0) && (
-            <div className="px-5 py-4 border-t border-border/40 grid sm:grid-cols-2 gap-4">
-              {prompt.tools.length > 0 && (
-                <ChipGroup title="Use with" items={prompt.tools} />
+          {(prompt.tools.length > 0 ||
+            prompt.tags.length > 0 ||
+            prompt.description) && (
+            <div className="px-5 py-4 border-t border-border/40 grid md:grid-cols-2 gap-x-8 gap-y-5">
+              <div className="flex flex-col gap-4">
+                {prompt.tools.length > 0 && (
+                  <ChipGroup title="Use with" items={prompt.tools} />
+                )}
+                {prompt.tags.length > 0 && (
+                  <ChipGroup title="Best for" items={prompt.tags} prefix="#" muted />
+                )}
+              </div>
+              {prompt.description && (
+                <div>
+                  <p className="text-sm font-semibold mb-2">How it works</p>
+                  <p className="text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">
+                    {prompt.description}
+                  </p>
+                </div>
               )}
-              {prompt.tags.length > 0 && (
-                <ChipGroup title="Best for" items={prompt.tags} prefix="#" muted />
-              )}
-            </div>
-          )}
-
-          {prompt.description && (
-            <div className="px-5 py-4 border-t border-border/40">
-              <p className="max-w-md text-sm text-foreground/80 whitespace-pre-wrap leading-relaxed">
-                {prompt.description}
-              </p>
             </div>
           )}
         </div>
