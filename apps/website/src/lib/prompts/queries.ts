@@ -87,6 +87,8 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
       or(
         ilike(schema.prompts.title, term),
         sql`EXISTS (SELECT 1 FROM unnest(${schema.prompts.tags}) AS t WHERE t ILIKE ${term})`,
+        // Also match the creator's name so people can search a creator.
+        sql`EXISTS (SELECT 1 FROM users u WHERE u.id = ${schema.prompts.createdByUserId} AND u.name ILIKE ${term})`,
       )!,
     );
   }

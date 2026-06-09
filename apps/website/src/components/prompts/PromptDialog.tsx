@@ -145,6 +145,7 @@ export function PromptDialog({
 
   const accessText = detail?.promptText ?? prompt.promptText;
   const websiteUrl = detail?.websiteUrl ?? prompt.websiteUrl;
+  const creatorName = prompt.creatorName ?? detail?.creatorName ?? null;
   const hasAccess = !!accessText || !!websiteUrl;
   const showUnlockCta = detail !== null && !detail.canAccess;
   const primaryCategory = prompt.categories[0];
@@ -164,6 +165,12 @@ export function PromptDialog({
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground mt-0.5">
               {categoryLabel ?? "Prompt"}
+              {creatorName && (
+                <>
+                  {" · "}
+                  <span className="text-sky-400">by {creatorName}</span>
+                </>
+              )}
             </DialogDescription>
           </div>
           <div className="flex items-center gap-2 shrink-0">
