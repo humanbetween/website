@@ -445,7 +445,7 @@ function PremiumPill() {
   return (
     <Link
       href="/pricing"
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground hover:bg-card/80 text-xs font-medium transition-colors"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white text-black hover:bg-white/90 text-xs font-medium transition-colors"
     >
       <Lock className="h-3.5 w-3.5" /> Premium
     </Link>

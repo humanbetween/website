@@ -6,6 +6,10 @@ import { useLazyAutoplay } from "@/lib/lazy-autoplay";
 
 const IMAGE_RE = /\.(jpe?g|png|webp|avif|gif)(\?|$)/i;
 
+// Only one AutoPlayMedia plays unmuted at a time (feed-style). Each instance
+// registers a "mute me" callback; unmuting one mutes all the others.
+const audioRegistry = new Set<() => void>();
+
 export type AutoPlayMediaProps = {
   src: string;
   poster?: string | null;
@@ -59,6 +63,29 @@ export function AutoPlayMedia({
   const mutedRef = useRef(muted);
   mutedRef.current = muted;
 
+  // Register a "mute me" callback so only one instance plays unmuted at a time.
+  const myEntryRef = useRef<(() => void) | null>(null);
+  const muteSelfRef = useRef<() => void>(() => {});
+  muteSelfRef.current = () => {
+    const v = videoRef.current;
+    if (v) v.muted = true;
+    mutedRef.current = true;
+    setMuted(true);
+  };
+  useEffect(() => {
+    const entry = () => muteSelfRef.current();
+    myEntryRef.current = entry;
+    audioRegistry.add(entry);
+    return () => {
+      audioRegistry.delete(entry);
+    };
+  }, []);
+  const soloOthers = useCallback(() => {
+    for (const fn of audioRegistry) {
+      if (fn !== myEntryRef.current) fn();
+    }
+  }, []);
+
   // Play honoring the current mute choice. If unmuted autoplay is blocked,
   // fall back to muted so the clip still plays.
   const play = useCallback(() => {
@@ -66,8 +93,10 @@ export function AutoPlayMedia({
     if (!v) return;
     v.muted = mutedRef.current;
     const p = v.play();
-    if (p && typeof p.catch === "function") {
-      p.catch(() => {
+    if (p && typeof p.then === "function") {
+      p.then(() => {
+        if (!v.muted) soloOthers();
+      }).catch(() => {
         if (!v.muted) {
           v.muted = true;
           mutedRef.current = true;
@@ -76,14 +105,18 @@ export function AutoPlayMedia({
         }
       });
     }
-  }, []);
+  }, [soloOthers]);
 
   function toggleMute() {
     const v = videoRef.current;
     if (!v) return;
     v.muted = !v.muted;
-    if (!v.muted) v.play().catch(() => {});
+    mutedRef.current = v.muted;
     setMuted(v.muted);
+    if (!v.muted) {
+      soloOthers();
+      v.play().catch(() => {});
+    }
   }
 
   const containerRef = useLazyAutoplay<HTMLDivElement>((visible) => {
