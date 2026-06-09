@@ -6,7 +6,7 @@ import { Lock, Copy, Check, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
 import type { PromptListItem } from "@/lib/prompts/types";
-import { useCategoryLabel } from "./CategoriesContext";
+import { useCategories } from "./CategoriesContext";
 import { FavoriteButton } from "./FavoriteButton";
 
 const CARD_ASPECT = "4 / 3";
@@ -26,8 +26,15 @@ export function PromptCard({
 }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
-  const primaryCategory = prompt.categories[0];
-  const categoryLabel = useCategoryLabel(primaryCategory);
+  const cats = useCategories();
+  const catDef = (k: string) => cats.find((c) => c.key === k);
+  const primaryKey =
+    prompt.categories.find((k) => !catDef(k)?.parent) ?? prompt.categories[0];
+  const subKey = prompt.categories.find((k) => !!catDef(k)?.parent);
+  const categoryLabel = primaryKey
+    ? catDef(primaryKey)?.label ?? primaryKey
+    : undefined;
+  const subLabel = subKey ? catDef(subKey)?.label ?? subKey : undefined;
   const accessible = prompt.isFree || hasUnlimited;
 
   async function onCardButtonClick(e: React.MouseEvent) {
@@ -122,6 +129,11 @@ export function PromptCard({
               {categoryLabel && (
                 <span className="shrink-0 px-1.5 py-0.5 rounded-md border border-border/60 text-[10px] text-muted-foreground">
                   {categoryLabel}
+                </span>
+              )}
+              {subLabel && (
+                <span className="shrink-0 px-1.5 py-0.5 rounded-md border border-border/60 text-[10px] text-muted-foreground">
+                  {subLabel}
                 </span>
               )}
             </div>
