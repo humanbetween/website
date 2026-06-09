@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, X, ExternalLink, Copy } from "lucide-react";
+import { Check, X, ExternalLink, Copy, Download, Maximize2 } from "lucide-react";
 import { AutoPlayMedia } from "@/components/media/AutoPlayMedia";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export type PendingSubmission = {
   id: string;
@@ -12,9 +13,12 @@ export type PendingSubmission = {
   description: string;
   thumbnailUrl: string | null;
   videoUrl: string;
+  referenceImageUrl: string | null;
   websiteUrl: string | null;
   promptText: string | null;
   categories: string[];
+  tags: string[];
+  tools: string[];
   createdAt: string | Date;
   creatorName: string | null;
   creatorEmail: string | null;
@@ -23,6 +27,29 @@ export type PendingSubmission = {
 export function SubmissionsReview({ rows }: { rows: PendingSubmission[] }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ src: string; alt: string } | null>(
+    null,
+  );
+
+  async function downloadReference(url: string, title: string) {
+    const filename = `${title.replace(/[^a-z0-9-]+/gi, "-")}-reference`;
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const ext = (url.split(".").pop()?.split("?")[0] ?? "jpg").slice(0, 5);
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `${filename}.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+    } catch {
+      window.open(url, "_blank", "noopener");
+    }
+  }
 
   async function review(
     id: string,
@@ -85,14 +112,55 @@ export function SubmissionsReview({ rows }: { rows: PendingSubmission[] }) {
             className="rounded-2xl border border-border/40 bg-card/40 p-4 flex flex-col gap-4"
           >
             <div className="flex gap-4">
-              <div className="w-40 sm:w-56 shrink-0">
-                <AutoPlayMedia
-                  src={s.videoUrl}
-                  poster={s.thumbnailUrl}
-                  alt={s.title}
-                  aspectRatio="4 / 3"
-                  className="rounded-lg border border-border/40"
-                />
+              <div className="w-40 sm:w-56 shrink-0 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPreview({ src: s.videoUrl, alt: s.title })}
+                  title="Click to enlarge"
+                  className="group relative block rounded-lg overflow-hidden border border-border/40"
+                >
+                  <AutoPlayMedia
+                    src={s.videoUrl}
+                    poster={s.thumbnailUrl}
+                    alt={s.title}
+                    aspectRatio="4 / 3"
+                  />
+                  <span className="absolute top-1.5 right-1.5 h-6 w-6 rounded-md bg-black/50 text-white inline-flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Maximize2 className="h-3.5 w-3.5" />
+                  </span>
+                </button>
+
+                {s.referenceImageUrl && (
+                  <div className="rounded-lg border border-border/40 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPreview({
+                          src: s.referenceImageUrl!,
+                          alt: `${s.title} reference`,
+                        })
+                      }
+                      title="Reference image — click to enlarge"
+                      className="block w-full"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={s.referenceImageUrl}
+                        alt="Reference"
+                        className="w-full aspect-[4/3] object-cover"
+                      />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        downloadReference(s.referenceImageUrl!, s.title)
+                      }
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-2 py-1.5 border-t border-border/40 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <Download className="h-3 w-3" /> Reference
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="min-w-0 flex-1">
@@ -121,6 +189,22 @@ export function SubmissionsReview({ rows }: { rows: PendingSubmission[] }) {
                     </span>
                   ))}
                 </div>
+                {s.tools.length > 0 && (
+                  <p className="text-xs text-foreground/70 mt-2">
+                    <span className="font-mono uppercase tracking-wider text-[10px] text-muted-foreground">
+                      Use with
+                    </span>{" "}
+                    {s.tools.join(", ")}
+                  </p>
+                )}
+                {s.tags.length > 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    <span className="font-mono uppercase tracking-wider text-[10px]">
+                      Best for
+                    </span>{" "}
+                    {s.tags.map((t) => `#${t}`).join(" ")}
+                  </p>
+                )}
                 {s.websiteUrl && (
                   <a
                     href={s.websiteUrl}
@@ -175,6 +259,24 @@ export function SubmissionsReview({ rows }: { rows: PendingSubmission[] }) {
           </div>
         );
       })}
+
+      <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
+        <DialogContent className="max-w-[960px] w-[calc(100vw-2rem)] p-0 overflow-hidden bg-card border-border/60">
+          <DialogTitle className="sr-only">
+            {preview?.alt ?? "Preview"}
+          </DialogTitle>
+          {preview && (
+            <div className="h-[80vh] bg-black">
+              <AutoPlayMedia
+                src={preview.src}
+                alt={preview.alt}
+                fit
+                className="h-full"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
