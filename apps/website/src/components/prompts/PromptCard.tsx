@@ -103,9 +103,11 @@ export function PromptCard({
           <h3 className="text-sm font-medium truncate leading-tight">
             {prompt.title}
           </h3>
-          {categoryLabel && (
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+          {(categoryLabel || prompt.creatorName) && (
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
               {categoryLabel}
+              {categoryLabel && prompt.creatorName ? " · " : ""}
+              {prompt.creatorName ? `by ${prompt.creatorName}` : ""}
             </p>
           )}
         </div>

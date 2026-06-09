@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { isAdmin } from "@/lib/admin";
 import { canAccessPrompt } from "@/lib/access";
+import { db, schema } from "@/lib/db";
 import { resolvePromptRef } from "@/lib/prompts/queries";
 import type { Category, PromptDetail } from "@/lib/prompts/types";
 
@@ -40,6 +42,16 @@ export async function GET(
       userId: session?.user.id ?? null,
     });
 
+    const creatorName = prompt.createdByUserId
+      ? (
+          await db
+            .select({ name: schema.users.name })
+            .from(schema.users)
+            .where(eq(schema.users.id, prompt.createdByUserId))
+            .limit(1)
+        )[0]?.name ?? null
+      : null;
+
     const payload: PromptDetail = {
       id: prompt.id,
       title: prompt.title,
@@ -59,6 +71,7 @@ export async function GET(
       promptText: canAccess ? prompt.promptText : null,
       websiteUrl: canAccess ? prompt.websiteUrl : null,
       hasWebsite: !!prompt.websiteUrl,
+      creatorName,
       canAccess,
     };
 

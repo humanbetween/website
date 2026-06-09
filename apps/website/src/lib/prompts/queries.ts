@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, ilike, isNull, lt, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, ilike, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { db, schema } from "@/lib/db";
 import { slugify, UUID_RE } from "./slug";
 import type { Category, PromptListItem, PromptListResponse, SortKey } from "./types";
@@ -139,6 +139,21 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
           })
       : null;
 
+  // Resolve creator names for creator-submitted prompts in one extra query.
+  const creatorIds = [
+    ...new Set(
+      page.map((r) => r.createdByUserId).filter((x): x is string => !!x),
+    ),
+  ];
+  const creatorNames = new Map<string, string | null>();
+  if (creatorIds.length) {
+    const us = await db
+      .select({ id: schema.users.id, name: schema.users.name })
+      .from(schema.users)
+      .where(inArray(schema.users.id, creatorIds));
+    for (const u of us) creatorNames.set(u.id, u.name);
+  }
+
   const items: PromptListItem[] = page.map((r) => ({
     id: r.id,
     title: r.title,
@@ -158,6 +173,9 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     promptText: r.isFree || args.hasUnlimited ? r.promptText : null,
     websiteUrl: r.isFree || args.hasUnlimited ? r.websiteUrl : null,
     hasWebsite: !!r.websiteUrl,
+    creatorName: r.createdByUserId
+      ? creatorNames.get(r.createdByUserId) ?? null
+      : null,
   }));
 
   return { items, nextCursor };

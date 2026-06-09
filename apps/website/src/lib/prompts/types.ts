@@ -74,6 +74,8 @@ export type PromptListItem = {
   // show a (locked) "Visit website" affordance even when the URL is withheld.
   websiteUrl: string | null;
   hasWebsite: boolean;
+  // Set only for creator-submitted prompts — shown as "by <name>" on the card.
+  creatorName: string | null;
 };
 
 export type PromptDetail = PromptListItem & {
@@ -120,6 +122,7 @@ export function rowToListItem(p: PromptRow): PromptListItem {
     promptText: p.isFree ? p.promptText : null,
     websiteUrl: p.isFree ? p.websiteUrl : null,
     hasWebsite: !!p.websiteUrl,
+    creatorName: null,
   };
 }
 
