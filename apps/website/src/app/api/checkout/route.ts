@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
@@ -7,6 +7,8 @@ import { db, schema } from "@/lib/db";
 import { appUrl, stripe, stripeConfig } from "@/lib/stripe";
 import { getPromptById } from "@/lib/prompts/queries";
 import { rateLimit } from "@/lib/rate-limit";
+import { isSelfReferral, resolveAffiliateByCode } from "@/lib/affiliate";
+import { REF_COOKIE } from "@/app/r/[code]/route";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +61,22 @@ export async function POST(request: Request) {
     }
   }
 
+  // Affiliate attribution: if the buyer arrived through a creator's link, carry
+  // the ref into Stripe so the webhook can credit the commission. Drop it for
+  // self-referrals and inactive/unknown codes.
+  let refMeta: { ref: string; refAffiliateUserId: string } | null = null;
+  const refCode = (await cookies()).get(REF_COOKIE)?.value;
+  if (refCode) {
+    const affiliate = await resolveAffiliateByCode(refCode).catch(() => null);
+    if (
+      affiliate &&
+      affiliate.status === "active" &&
+      !isSelfReferral(user?.id ?? null, affiliate.userId)
+    ) {
+      refMeta = { ref: affiliate.code, refAffiliateUserId: affiliate.userId };
+    }
+  }
+
   try {
     if (parsed.data.mode === "subscription") {
       const priceId =
@@ -80,7 +98,13 @@ export async function POST(request: Request) {
         metadata: {
           userId: user?.id ?? "",
           tier: parsed.data.tier,
+          ...(refMeta ?? {}),
         },
+        // Stamp the ref on the subscription so renewal invoices (which have no
+        // checkout session) still carry attribution.
+        ...(refMeta
+          ? { subscription_data: { metadata: refMeta } }
+          : {}),
       });
       return NextResponse.json({ url: checkout.url });
     }
@@ -125,6 +149,7 @@ export async function POST(request: Request) {
         userId: user.id,
         promptId: prompt.id,
         mode: "one_time",
+        ...(refMeta ?? {}),
       },
     });
     return NextResponse.json({ url: checkout.url });

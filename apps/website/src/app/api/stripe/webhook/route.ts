@@ -6,6 +6,15 @@ import { db, schema } from "@/lib/db";
 import { subscribeToNewsletter } from "@/lib/newsletter";
 import { sendWelcomeCustomerEmail } from "@/lib/resend";
 import { appUrl, stripe, stripeConfig } from "@/lib/stripe";
+import { getAffiliateSettings } from "@/lib/site-settings";
+import {
+  findReferralByUser,
+  isSelfReferral,
+  recordOneTimeCommission,
+  recordSubscriptionCommission,
+  resolveAffiliate,
+  upsertReferral,
+} from "@/lib/affiliate";
 
 export const dynamic = "force-dynamic";
 
@@ -66,10 +75,28 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     );
   }
 
+  const refCode = session.metadata?.ref || null;
+  const refAffiliateUserId = session.metadata?.refAffiliateUserId || null;
+  const hasRef =
+    !!refCode &&
+    !!refAffiliateUserId &&
+    !isSelfReferral(userId, refAffiliateUserId);
+
   if (session.mode === "subscription" && session.subscription) {
     const sub = await stripe.subscriptions.retrieve(session.subscription as string);
     const tier =
       session.metadata?.tier === "monthly" ? "monthly" : "yearly";
+
+    if (hasRef) {
+      // First-touch referral; the first paid invoice creates the commission.
+      await upsertReferral({
+        affiliateUserId: refAffiliateUserId!,
+        code: refCode!,
+        referredUserId: userId,
+        stripeCustomerId: session.customer as string,
+        stripeSubscriptionId: sub.id,
+      }).catch((err) => console.error("upsertReferral (subscription) failed", err));
+    }
     await db
       .update(schema.profiles)
       .set({
@@ -120,6 +147,28 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
           amountCents: session.amount_total ?? 0,
         })
         .onConflictDoNothing();
+    }
+
+    if (hasRef && session.payment_intent) {
+      await upsertReferral({
+        affiliateUserId: refAffiliateUserId!,
+        code: refCode!,
+        referredUserId: userId,
+        stripeCustomerId: session.customer as string,
+      }).catch((err) => console.error("upsertReferral (one_time) failed", err));
+      // Honor first-touch: credit whoever owns the referral row, not just the
+      // cookie. recordOneTimeCommission is idempotent on the payment intent.
+      const referral = await findReferralByUser(userId);
+      if (referral && !isSelfReferral(userId, referral.affiliateUserId)) {
+        const rateBps = await rateForAffiliate(referral.affiliateUserId);
+        await recordOneTimeCommission({
+          affiliateUserId: referral.affiliateUserId,
+          referralId: referral.id,
+          paymentIntentId: session.payment_intent as string,
+          saleAmountCents: session.amount_total ?? 0,
+          rateBps,
+        }).catch((err) => console.error("recordOneTimeCommission failed", err));
+      }
     }
   }
 
@@ -197,18 +246,82 @@ async function handleSubscriptionChange(sub: Stripe.Subscription) {
 }
 
 async function handleInvoicePaid(invoice: Stripe.Invoice) {
-  const sub = (invoice as unknown as { subscription?: string }).subscription;
-  if (!sub) return;
+  // Stripe SDK v22 moved the subscription id + its metadata snapshot under
+  // invoice.parent.subscription_details (the old invoice.subscription is gone).
+  const details = (
+    invoice as unknown as {
+      parent?: {
+        subscription_details?: {
+          subscription?: string | { id: string };
+          metadata?: Record<string, string> | null;
+        };
+      };
+    }
+  ).parent?.subscription_details;
+  const rawSub = details?.subscription;
+  const subId =
+    typeof rawSub === "string" ? rawSub : rawSub?.id ?? null;
+  if (!subId) return;
+
   const customerId = invoice.customer as string;
   const userId = await userIdFromCustomer(customerId);
   if (!userId) return;
-  await db.insert(schema.purchases).values({
-    userId,
-    promptId: null,
-    stripeSubscriptionId: sub,
-    type: "subscription_renewal",
-    amountCents: invoice.amount_paid ?? 0,
-  });
+
+  const billingReason =
+    (invoice as unknown as { billing_reason?: string | null }).billing_reason ??
+    null;
+  // Cycle 1's purchase is already recorded by the checkout handler; only record
+  // renewals here. (This restores renewal recording — the old code read the
+  // removed invoice.subscription field and bailed, so renewals were lost.)
+  if (billingReason !== "subscription_create") {
+    await db.insert(schema.purchases).values({
+      userId,
+      promptId: null,
+      stripeSubscriptionId: subId,
+      type: "subscription_renewal",
+      amountCents: invoice.amount_paid ?? 0,
+    });
+  }
+
+  // Affiliate commission: invoices drive subscription commissions (cycle 1 +
+  // renewals), idempotent on the invoice id and capped to the referral window.
+  if (!invoice.id) return;
+  const metaRef = details?.metadata?.ref || null;
+  const metaAffiliate = details?.metadata?.refAffiliateUserId || null;
+  if (metaRef && metaAffiliate && !isSelfReferral(userId, metaAffiliate)) {
+    // Survive event ordering: create the referral if checkout.session.completed
+    // hasn't landed yet.
+    await upsertReferral({
+      affiliateUserId: metaAffiliate,
+      code: metaRef,
+      referredUserId: userId,
+      stripeCustomerId: customerId,
+      stripeSubscriptionId: subId,
+    }).catch((err) => console.error("upsertReferral (invoice) failed", err));
+  }
+
+  const referral = await findReferralByUser(userId);
+  if (!referral || isSelfReferral(userId, referral.affiliateUserId)) return;
+  const rateBps = await rateForAffiliate(referral.affiliateUserId);
+  const { capWindowDays } = await getAffiliateSettings();
+  const invoiceDate = new Date((invoice.created ?? Date.now() / 1000) * 1000);
+  await recordSubscriptionCommission({
+    affiliateUserId: referral.affiliateUserId,
+    referralId: referral.id,
+    referralCreatedAt: referral.createdAt,
+    subscriptionId: subId,
+    invoiceId: invoice.id,
+    invoiceDate,
+    saleAmountCents: invoice.amount_paid ?? 0,
+    rateBps,
+    capWindowDays,
+  }).catch((err) => console.error("recordSubscriptionCommission failed", err));
+}
+
+async function rateForAffiliate(affiliateUserId: string): Promise<number> {
+  const acct = await resolveAffiliate(affiliateUserId);
+  if (acct) return acct.commissionRateBps;
+  return (await getAffiliateSettings()).rateBps;
 }
 
 async function userIdFromCustomer(customerId: string): Promise<string | null> {

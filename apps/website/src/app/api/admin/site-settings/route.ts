@@ -86,6 +86,15 @@ const headerCtaSchema = z.object({
   }),
 });
 
+const affiliateSchema = z.object({
+  key: z.literal("affiliate_settings"),
+  value: z.object({
+    rateBps: z.number().int().min(0).max(10000),
+    capWindowDays: z.number().int().min(0).max(3650),
+    cookieDays: z.number().int().min(1).max(365),
+  }),
+});
+
 const bodySchema = z.discriminatedUnion("key", [
   bannerSchema,
   plansSchema,
@@ -94,6 +103,7 @@ const bodySchema = z.discriminatedUnion("key", [
   socialSchema,
   homeCtaSchema,
   headerCtaSchema,
+  affiliateSchema,
 ]);
 
 export async function PUT(request: Request) {

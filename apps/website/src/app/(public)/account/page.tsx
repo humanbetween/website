@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db, schema } from "@/lib/db";
+import { resolveAffiliate } from "@/lib/affiliate";
 import { SignOutButton } from "./SignOutButton";
 import { ManageSubscriptionButton } from "./ManageSubscriptionButton";
 
@@ -27,6 +28,7 @@ export default async function AccountPage() {
 
   const subscribed = profile?.subscriptionStatus === "active";
   const hasStripe = Boolean(profile?.stripeCustomerId);
+  const creator = await resolveAffiliate(session.user.id).catch(() => null);
 
   return (
     <div className="container mx-auto max-w-2xl px-6 py-20 flex flex-col gap-6">
@@ -75,6 +77,23 @@ export default async function AccountPage() {
             See pricing
           </Link>
         )}
+      </section>
+
+      <section className="rounded-2xl border border-border/40 bg-card/40 p-6">
+        <h2 className="text-xs font-mono uppercase tracking-wider text-muted-foreground mb-2">
+          Creator program
+        </h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          {creator
+            ? "Share your referral link and earn on every sale you bring in."
+            : "Earn commission on every customer you refer. Get your link in one click."}
+        </p>
+        <Link
+          href={creator ? "/creator" : "/creator/join"}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-foreground text-background text-sm font-medium hover:bg-foreground/90 transition-colors"
+        >
+          {creator ? "Open creator dashboard" : "Become a creator"}
+        </Link>
       </section>
     </div>
   );

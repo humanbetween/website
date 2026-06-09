@@ -86,6 +86,37 @@ export async function sendWelcomeCustomerEmail({
   if (error) throw new Error(`welcome customer email: ${error.message}`);
 }
 
+export async function sendCreatorWelcomeEmail({
+  to,
+  code,
+  link,
+}: {
+  to: string;
+  code: string;
+  link: string;
+}) {
+  const { error } = await resend.emails.send({
+    from: `Human Prompts <${fromEmail}>`,
+    to,
+    subject: "You're a Human Prompts creator — here's your link",
+    text:
+      `Welcome to the creator program.\n\n` +
+      `Your referral code is ${code}. Share your link and earn 10% on every sale ` +
+      `you bring in:\n${link}\n\n` +
+      `Track your referrals and earnings: ${SITE}/creator\n\n` +
+      `— Human Prompts · humanprompts.ai`,
+    html: brandEmailShell({
+      eyebrow: "Creator program",
+      heading: "You're in — start earning \u{1F680}",
+      bodyHtml: `Your referral code is <strong style="color:#fafaf9">${code}</strong>. Share your link and earn <strong style="color:#fafaf9">10% on every sale</strong> you bring in. Commissions land in your creator dashboard.`,
+      ctaLabel: "Copy your link →",
+      ctaUrl: link,
+      secondaryHtml: `Track referrals and earnings on your <a href="${SITE}/creator" style="color:#78716c;text-decoration:underline">creator dashboard</a>.`,
+    }),
+  });
+  if (error) throw new Error(`creator welcome email: ${error.message}`);
+}
+
 export async function sendNewSubscriberEmail({
   email,
   name,

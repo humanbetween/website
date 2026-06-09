@@ -224,9 +224,90 @@ export const siteSettings = pgTable("site_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/* -------------------------------------------------------------------------- */
+/*  Affiliate / creator program                                               */
+/* -------------------------------------------------------------------------- */
+
+// One row per creator. Existence of a row = "this user is a creator". The
+// referral balance is derived from the commissions ledger, never stored here.
+export const affiliateAccounts = pgTable(
+  "affiliate_accounts",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    status: text("status").notNull().default("active"), // "active" | "suspended"
+    commissionRateBps: integer("commission_rate_bps").notNull().default(1000),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("affiliate_accounts_code_unique").on(t.code)],
+);
+
+// Attribution: a referred customer belongs to one affiliate (first-touch).
+export const referrals = pgTable(
+  "referrals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    affiliateUserId: text("affiliate_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    referredUserId: text("referred_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    stripeCustomerId: text("stripe_customer_id"),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("referrals_affiliate_user_id").on(t.affiliateUserId),
+    index("referrals_subscription").on(t.stripeSubscriptionId),
+    // First-touch: a customer is locked to the first affiliate who referred them.
+    uniqueIndex("referrals_referred_user_unique")
+      .on(t.referredUserId)
+      .where(sql`${t.referredUserId} IS NOT NULL`),
+  ],
+);
+
+// Commission ledger. Balance = SUM(commissionCents) WHERE status = 'payable'.
+// stripeChargeKey is the canonical idempotency key (payment_intent for one-time,
+// invoice id for subscription) so webhook retries can't double-credit.
+export const commissions = pgTable(
+  "commissions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    affiliateUserId: text("affiliate_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    referralId: uuid("referral_id").references(() => referrals.id, {
+      onDelete: "set null",
+    }),
+    sourceType: text("source_type").notNull(), // "one_time" | "subscription"
+    stripeChargeKey: text("stripe_charge_key").notNull(),
+    stripeSubscriptionId: text("stripe_subscription_id"),
+    saleAmountCents: integer("sale_amount_cents").notNull(),
+    commissionCents: integer("commission_cents").notNull(),
+    status: text("status").notNull().default("payable"), // "payable" | "paid" | "reversed"
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("commissions_charge_key_unique").on(t.stripeChargeKey),
+    index("commissions_affiliate_created").on(
+      t.affiliateUserId,
+      t.createdAt.desc(),
+    ),
+    index("commissions_subscription").on(t.stripeSubscriptionId),
+  ],
+);
+
 export type User = typeof users.$inferSelect;
 export type Profile = typeof profiles.$inferSelect;
 export type Prompt = typeof prompts.$inferSelect;
 export type PromptInsert = typeof prompts.$inferInsert;
 export type Purchase = typeof purchases.$inferSelect;
 export type SiteSetting = typeof siteSettings.$inferSelect;
+export type AffiliateAccount = typeof affiliateAccounts.$inferSelect;
+export type Referral = typeof referrals.$inferSelect;
+export type Commission = typeof commissions.$inferSelect;

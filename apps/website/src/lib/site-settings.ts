@@ -124,6 +124,21 @@ const DEFAULT_SOCIAL: SocialLinks = {
   linkedin: "",
 };
 
+export type AffiliateSettings = {
+  /** Commission rate in basis points (1000 = 10%). */
+  rateBps: number;
+  /** Subscription commissions only accrue within this many days of the referral. */
+  capWindowDays: number;
+  /** How long the referral cookie lives. */
+  cookieDays: number;
+};
+
+const DEFAULT_AFFILIATE: AffiliateSettings = {
+  rateBps: 1000,
+  capWindowDays: 90,
+  cookieDays: 60,
+};
+
 async function getRaw<T>(key: string, fallback: T): Promise<T> {
   try {
     const rows = await db
@@ -165,6 +180,10 @@ export const getHomeCtaBanner = cache(async (): Promise<HomeCtaBanner> => {
 
 export const getHeaderCta = cache(async (): Promise<HeaderCta> => {
   return getRaw<HeaderCta>("header_cta", DEFAULT_HEADER_CTA);
+});
+
+export const getAffiliateSettings = cache(async (): Promise<AffiliateSettings> => {
+  return getRaw<AffiliateSettings>("affiliate_settings", DEFAULT_AFFILIATE);
 });
 
 /**
