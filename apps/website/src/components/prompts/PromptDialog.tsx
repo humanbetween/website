@@ -159,7 +159,10 @@ export function PromptDialog({
   const creatorAvatar =
     prompt.creatorAvatarUrl ?? detail?.creatorAvatarUrl ?? null;
   const hasAccess = !!accessText || !!websiteUrl;
-  const showUnlockCta = detail !== null && !detail.canAccess;
+  // Derive the upsell synchronously from the list item (no access + not free)
+  // so the Premium button doesn't flicker while the detail re-fetches during
+  // arrow navigation. The detail fetch only ever upgrades access, never revokes.
+  const showUnlockCta = !hasAccess && !prompt.isFree;
   const primaryCategory = prompt.categories[0];
   const categoryLabel = useCategoryLabel(primaryCategory);
 
