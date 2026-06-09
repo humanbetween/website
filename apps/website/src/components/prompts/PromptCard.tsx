@@ -103,23 +103,23 @@ export function PromptCard({
           <h3 className="text-sm font-medium truncate leading-tight">
             {prompt.title}
           </h3>
-          {categoryLabel && (
-            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-              {categoryLabel}
-            </p>
-          )}
           {prompt.creatorName && (
             <div className="flex items-center gap-1.5 mt-1 min-w-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={prompt.creatorAvatarUrl || "/creator-default.svg"}
                 alt=""
-                className="h-4 w-4 rounded-full object-cover border border-border/40 shrink-0"
+                className="h-5 w-5 rounded-md object-cover border border-border/40 shrink-0"
               />
-              <span className="text-[11px] text-sky-400 truncate">
+              <span className="text-xs font-semibold text-sky-400 truncate">
                 {prompt.creatorName}
               </span>
             </div>
+          )}
+          {categoryLabel && (
+            <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+              {categoryLabel}
+            </p>
           )}
         </div>
         <button
