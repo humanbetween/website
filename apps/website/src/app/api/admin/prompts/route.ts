@@ -46,6 +46,8 @@ export async function POST(request: Request) {
         referenceImageUrl: parsed.data.referenceImageUrl ?? null,
         isPublished: parsed.data.isPublished,
         hasAudio: parsed.data.hasAudio,
+        manualCreatorName: parsed.data.manualCreatorName ?? null,
+        manualCreatorAvatarUrl: parsed.data.manualCreatorAvatarUrl ?? null,
         assets: parsed.data.assets,
         categories: parsed.data.categories,
         tags: parsed.data.tags,

@@ -42,9 +42,9 @@ export async function GET(
       userId: session?.user.id ?? null,
     });
 
-    let creatorName: string | null = null;
-    let creatorAvatarUrl: string | null = null;
-    if (prompt.createdByUserId) {
+    let creatorName: string | null = prompt.manualCreatorName || null;
+    let creatorAvatarUrl: string | null = prompt.manualCreatorAvatarUrl || null;
+    if (prompt.createdByUserId && (!creatorName || !creatorAvatarUrl)) {
       const [u, acct] = await Promise.all([
         db
           .select({ name: schema.users.name })
@@ -57,8 +57,8 @@ export async function GET(
           .where(eq(schema.affiliateAccounts.userId, prompt.createdByUserId))
           .limit(1),
       ]);
-      creatorName = u[0]?.name ?? null;
-      creatorAvatarUrl = acct[0]?.avatarUrl ?? null;
+      creatorName = creatorName ?? u[0]?.name ?? null;
+      creatorAvatarUrl = creatorAvatarUrl ?? acct[0]?.avatarUrl ?? null;
     }
 
     const payload: PromptDetail = {

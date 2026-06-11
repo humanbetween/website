@@ -32,6 +32,8 @@ export const promptFormSchema = z.object({
   referenceImageUrl: z.string().nullable(),
   isPublished: z.boolean(),
   hasAudio: z.boolean(),
+  manualCreatorName: z.string().max(120).nullable(),
+  manualCreatorAvatarUrl: z.string().max(500).nullable(),
   assets: z.array(assetSchema),
   categories: z.array(categoryKey).min(1).max(10),
   tags: z.array(z.string().max(40)).max(20),
@@ -48,6 +50,8 @@ export const creatorSubmitSchema = promptFormSchema.omit({
   priceCents: true,
   isFree: true,
   isPublished: true,
+  manualCreatorName: true,
+  manualCreatorAvatarUrl: true,
 });
 
 export type CreatorSubmitValues = z.infer<typeof creatorSubmitSchema>;

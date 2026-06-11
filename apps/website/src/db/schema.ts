@@ -139,6 +139,10 @@ export const prompts = pgTable(
     }),
     submissionStatus: text("submission_status").notNull().default("approved"),
     reviewNotes: text("review_notes"),
+    // Admin-set creator credit (name + avatar) for products not tied to a real
+    // affiliate account. When set, these win over the createdByUserId author.
+    manualCreatorName: text("manual_creator_name"),
+    manualCreatorAvatarUrl: text("manual_creator_avatar_url"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),

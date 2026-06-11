@@ -142,6 +142,8 @@ export function PromptForm({ initial, mode, audience = "admin" }: Props) {
       referenceImageUrl: initial?.referenceImageUrl ?? null,
       isPublished: initial?.isPublished ?? true,
       hasAudio: initial?.hasAudio ?? (mode === "create"),
+      manualCreatorName: initial?.manualCreatorName ?? null,
+      manualCreatorAvatarUrl: initial?.manualCreatorAvatarUrl ?? null,
       assets: initial?.assets ?? [],
       categories: initial?.categories ?? [],
       tags: initial?.tags ?? [],
@@ -151,10 +153,27 @@ export function PromptForm({ initial, mode, audience = "admin" }: Props) {
 
   const videoUrl = watch("videoUrl");
   const referenceImageUrl = watch("referenceImageUrl");
+  const manualCreatorAvatarUrl = watch("manualCreatorAvatarUrl");
   const categories = watch("categories");
   const tags = watch("tags");
   const tools = watch("tools");
   const [refUploading, setRefUploading] = useState(false);
+  const [creatorAvatarUploading, setCreatorAvatarUploading] = useState(false);
+
+  async function onCreatorAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCreatorAvatarUploading(true);
+    setError(null);
+    try {
+      const { url } = await uploadToR2(file);
+      setValue("manualCreatorAvatarUrl", url, { shouldValidate: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Avatar upload failed");
+    } finally {
+      setCreatorAvatarUploading(false);
+    }
+  }
 
   async function uploadVideo(file: File) {
     setVideoProgress(0);
@@ -415,6 +434,58 @@ export function PromptForm({ initial, mode, audience = "admin" }: Props) {
           <Plus className="h-3 w-3" /> Insert template
         </button>
       </Field>
+
+      {!isCreator && (
+        <Field
+          label="Creator credit (optional)"
+          hint="Manually credit a creator on this product (name + photo). It shows exactly like an affiliate creator. Leave the name empty to use the affiliate submitter, if any."
+        >
+          <input
+            {...register("manualCreatorName")}
+            className={inputCls}
+            placeholder="Creator name"
+          />
+          <div className="flex items-center gap-3 mt-2">
+            <label className="inline-flex items-center gap-2 px-3 py-2 rounded-full glass text-xs cursor-pointer hover:bg-card/80">
+              {creatorAvatarUploading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Upload className="h-3.5 w-3.5" />
+              )}
+              Upload photo
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onCreatorAvatarChange}
+              />
+            </label>
+            {manualCreatorAvatarUrl && (
+              <button
+                type="button"
+                onClick={() =>
+                  setValue("manualCreatorAvatarUrl", null, {
+                    shouldValidate: true,
+                  })
+                }
+                className="text-[11px] text-muted-foreground hover:text-foreground underline"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+          {manualCreatorAvatarUrl && (
+            <div className="mt-3 h-12 w-12 rounded-md overflow-hidden border border-border/40 bg-card">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={manualCreatorAvatarUrl}
+                alt="Creator"
+                className="h-full w-full object-cover"
+              />
+            </div>
+          )}
+        </Field>
+      )}
 
       {!isCreator && (
         <Field

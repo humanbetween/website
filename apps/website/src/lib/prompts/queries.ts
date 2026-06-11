@@ -187,12 +187,12 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     websiteUrl: r.isFree || args.hasUnlimited ? r.websiteUrl : null,
     hasWebsite: !!r.websiteUrl,
     hasAudio: r.hasAudio,
-    creatorName: r.createdByUserId
-      ? creatorNames.get(r.createdByUserId) ?? null
-      : null,
-    creatorAvatarUrl: r.createdByUserId
-      ? creatorAvatars.get(r.createdByUserId) ?? null
-      : null,
+    creatorName:
+      r.manualCreatorName ||
+      (r.createdByUserId ? creatorNames.get(r.createdByUserId) ?? null : null),
+    creatorAvatarUrl:
+      r.manualCreatorAvatarUrl ||
+      (r.createdByUserId ? creatorAvatars.get(r.createdByUserId) ?? null : null),
   }));
 
   return { items, nextCursor };
