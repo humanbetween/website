@@ -131,12 +131,18 @@ export type AffiliateSettings = {
   capWindowDays: number;
   /** How long the referral cookie lives. */
   cookieDays: number;
+  /** Days a commission is held before it can be paid out (refund window). */
+  holdDays: number;
+  /** Minimum payable balance (cents) before an automatic payout is sent. */
+  minPayoutCents: number;
 };
 
 const DEFAULT_AFFILIATE: AffiliateSettings = {
   rateBps: 1000,
   capWindowDays: 90,
   cookieDays: 60,
+  holdDays: 30,
+  minPayoutCents: 1000,
 };
 
 async function getRaw<T>(key: string, fallback: T): Promise<T> {

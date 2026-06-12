@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { Users, BadgeCheck, Wallet, CalendarClock, Plus, Pencil } from "lucide-react";
 import { requireCreator } from "@/lib/creator";
-import { getCreatorStats, getReferredCustomers } from "@/lib/affiliate";
+import {
+  getCreatorStats,
+  getReferredCustomers,
+  getCreatorBalances,
+  getCreatorPayouts,
+} from "@/lib/affiliate";
 import { getMySubmissions } from "@/lib/submissions";
+import { ConnectPayoutsButton } from "./ConnectPayoutsButton";
 import { appUrl } from "@/lib/stripe";
 import { slugify } from "@/lib/prompts/slug";
 import {
@@ -22,10 +28,12 @@ export const dynamic = "force-dynamic";
 
 export default async function CreatorDashboardPage() {
   const { account } = await requireCreator();
-  const [stats, customers, submissions] = await Promise.all([
+  const [stats, customers, submissions, balances, payouts] = await Promise.all([
     getCreatorStats(account.userId),
     getReferredCustomers(account.userId),
     getMySubmissions(account.userId),
+    getCreatorBalances(account.userId),
+    getCreatorPayouts(account.userId),
   ]);
   const link = appUrl(`/r/${account.code}`);
   const suspended = account.status !== "active";
@@ -84,9 +92,9 @@ export default async function CreatorDashboardPage() {
           icon={BadgeCheck}
         />
         <KpiCard
-          label="Balance"
-          value={formatCents(stats.payableBalanceCents)}
-          hint="Available to withdraw"
+          label="Available"
+          value={formatCents(balances.availableCents)}
+          hint={`${formatCents(balances.pendingCents)} pending`}
           icon={Wallet}
         />
         <KpiCard
@@ -96,6 +104,80 @@ export default async function CreatorDashboardPage() {
           icon={CalendarClock}
         />
       </div>
+
+      <AdminCard title="Payouts">
+        <div className="px-5 py-5 flex flex-col gap-4">
+          <div className="grid grid-cols-3 gap-3 text-sm">
+            <div>
+              <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+                Available
+              </p>
+              <p className="text-lg font-medium tabular-nums mt-1">
+                {formatCents(balances.availableCents)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+                Pending (30-day hold)
+              </p>
+              <p className="text-lg font-medium tabular-nums mt-1 text-muted-foreground">
+                {formatCents(balances.pendingCents)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
+                Paid out
+              </p>
+              <p className="text-lg font-medium tabular-nums mt-1 text-muted-foreground">
+                {formatCents(balances.paidCents)}
+              </p>
+            </div>
+          </div>
+
+          {account.payoutsEnabled ? (
+            <p className="text-xs text-muted-foreground">
+              ✅ Payouts active. Earnings are sent to your bank automatically about
+              30 days after each sale (min {formatCents(1000)}).
+            </p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <p className="text-xs text-muted-foreground">
+                Set up payouts to get your earnings sent to your bank. Each
+                commission is paid automatically ~30 days after the sale.
+              </p>
+              <ConnectPayoutsButton
+                label={
+                  account.stripeConnectAccountId
+                    ? "Finish payout setup"
+                    : "Set up payouts"
+                }
+              />
+            </div>
+          )}
+
+          {payouts.length > 0 && (
+            <div className="border-t border-border/40 pt-4">
+              <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground mb-2">
+                History
+              </p>
+              <ul className="divide-y divide-border/20">
+                {payouts.map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex items-center justify-between py-2 text-sm"
+                  >
+                    <span className="tabular-nums">{formatCents(p.amountCents)}</span>
+                    <span className="text-muted-foreground">{statusBadge(p.status)}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {timeAgo(p.createdAt)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </AdminCard>
 
       <AdminCard
         title="Your projects"

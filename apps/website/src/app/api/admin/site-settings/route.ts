@@ -92,6 +92,8 @@ const affiliateSchema = z.object({
     rateBps: z.number().int().min(0).max(10000),
     capWindowDays: z.number().int().min(0).max(3650),
     cookieDays: z.number().int().min(1).max(365),
+    holdDays: z.number().int().min(0).max(365),
+    minPayoutCents: z.number().int().min(0).max(1_000_000),
   }),
 });
 

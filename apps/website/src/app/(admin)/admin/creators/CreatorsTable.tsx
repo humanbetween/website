@@ -60,6 +60,7 @@ export function CreatorsTable({ rows }: { rows: AdminAffiliateRow[] }) {
             <th className="px-5 py-3 font-normal text-right">Customers</th>
             <th className="px-5 py-3 font-normal text-right">Owed</th>
             <th className="px-5 py-3 font-normal text-right">Lifetime</th>
+            <th className="px-5 py-3 font-normal">Payouts</th>
             <th className="px-5 py-3 font-normal">Status</th>
             <th className="px-5 py-3 font-normal text-right">Actions</th>
           </tr>
@@ -83,6 +84,23 @@ export function CreatorsTable({ rows }: { rows: AdminAffiliateRow[] }) {
               </td>
               <td className="px-5 py-3 text-right tabular-nums text-muted-foreground">
                 {formatCents(r.lifetimeCents)}
+              </td>
+              <td className="px-5 py-3 whitespace-nowrap">
+                <span
+                  className={
+                    "inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider " +
+                    (r.payoutsEnabled
+                      ? "bg-foreground text-background"
+                      : "bg-card/60 border border-border/60 text-muted-foreground")
+                  }
+                >
+                  {r.payoutsEnabled ? "Active" : "Not set up"}
+                </span>
+                {r.paidCents > 0 && (
+                  <span className="ml-2 text-xs text-muted-foreground tabular-nums">
+                    {formatCents(r.paidCents)} paid
+                  </span>
+                )}
               </td>
               <td className="px-5 py-3">{statusBadge(r.status)}</td>
               <td className="px-5 py-3">

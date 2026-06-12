@@ -253,6 +253,9 @@ export const affiliateAccounts = pgTable(
     status: text("status").notNull().default("active"), // "active" | "suspended"
     commissionRateBps: integer("commission_rate_bps").notNull().default(1000),
     avatarUrl: text("avatar_url"),
+    // Stripe Connect Express payout account.
+    stripeConnectAccountId: text("stripe_connect_account_id"),
+    payoutsEnabled: boolean("payouts_enabled").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -304,6 +307,10 @@ export const commissions = pgTable(
     saleAmountCents: integer("sale_amount_cents").notNull(),
     commissionCents: integer("commission_cents").notNull(),
     status: text("status").notNull().default("payable"), // "payable" | "paid" | "reversed"
+    // Held until this date (sale + holdDays), then eligible for auto-payout.
+    maturesAt: timestamp("matures_at", { withTimezone: true }),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    payoutId: uuid("payout_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -313,6 +320,31 @@ export const commissions = pgTable(
       t.createdAt.desc(),
     ),
     index("commissions_subscription").on(t.stripeSubscriptionId),
+    index("commissions_status_matures").on(t.status, t.maturesAt),
+  ],
+);
+
+// One row per Stripe transfer to a creator's connected account.
+export const payouts = pgTable(
+  "payouts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    affiliateUserId: text("affiliate_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    stripeTransferId: text("stripe_transfer_id"),
+    amountCents: integer("amount_cents").notNull(),
+    status: text("status").notNull().default("paid"), // "paid" | "failed"
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("payouts_affiliate_created").on(
+      t.affiliateUserId,
+      t.createdAt.desc(),
+    ),
+    uniqueIndex("payouts_transfer_unique")
+      .on(t.stripeTransferId)
+      .where(sql`${t.stripeTransferId} IS NOT NULL`),
   ],
 );
 
@@ -325,3 +357,4 @@ export type SiteSetting = typeof siteSettings.$inferSelect;
 export type AffiliateAccount = typeof affiliateAccounts.$inferSelect;
 export type Referral = typeof referrals.$inferSelect;
 export type Commission = typeof commissions.$inferSelect;
+export type Payout = typeof payouts.$inferSelect;

@@ -13,6 +13,7 @@ import {
   recordOneTimeCommission,
   recordSubscriptionCommission,
   resolveAffiliate,
+  reverseCommissionsForCharge,
   upsertReferral,
 } from "@/lib/affiliate";
 
@@ -48,6 +49,12 @@ export async function POST(request: Request) {
         break;
       case "invoice.payment_succeeded":
         await handleInvoicePaid(event.data.object);
+        break;
+      case "account.updated":
+        await handleConnectAccountUpdated(event.data.object as Stripe.Account);
+        break;
+      case "charge.refunded":
+        await handleChargeRefunded(event.data.object as Stripe.Charge);
         break;
       default:
         break;
@@ -161,12 +168,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       const referral = await findReferralByUser(userId);
       if (referral && !isSelfReferral(userId, referral.affiliateUserId)) {
         const rateBps = await rateForAffiliate(referral.affiliateUserId);
+        const { holdDays } = await getAffiliateSettings();
         await recordOneTimeCommission({
           affiliateUserId: referral.affiliateUserId,
           referralId: referral.id,
           paymentIntentId: session.payment_intent as string,
           saleAmountCents: session.amount_total ?? 0,
           rateBps,
+          holdDays,
         }).catch((err) => console.error("recordOneTimeCommission failed", err));
       }
     }
@@ -303,7 +312,7 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   const referral = await findReferralByUser(userId);
   if (!referral || isSelfReferral(userId, referral.affiliateUserId)) return;
   const rateBps = await rateForAffiliate(referral.affiliateUserId);
-  const { capWindowDays } = await getAffiliateSettings();
+  const { capWindowDays, holdDays } = await getAffiliateSettings();
   const invoiceDate = new Date((invoice.created ?? Date.now() / 1000) * 1000);
   await recordSubscriptionCommission({
     affiliateUserId: referral.affiliateUserId,
@@ -315,7 +324,30 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
     saleAmountCents: invoice.amount_paid ?? 0,
     rateBps,
     capWindowDays,
+    holdDays,
   }).catch((err) => console.error("recordSubscriptionCommission failed", err));
+}
+
+// Connect account onboarding/verification status → flip payoutsEnabled.
+async function handleConnectAccountUpdated(account: Stripe.Account) {
+  const enabled = !!account.charges_enabled && !!account.payouts_enabled;
+  await db
+    .update(schema.affiliateAccounts)
+    .set({ payoutsEnabled: enabled, updatedAt: new Date() })
+    .where(eq(schema.affiliateAccounts.stripeConnectAccountId, account.id));
+}
+
+// Refund → cancel any still-payable commission for that charge (30-day hold
+// means most refunds land before payout). Paid-out commissions aren't clawed.
+async function handleChargeRefunded(charge: Stripe.Charge) {
+  const paymentIntentId =
+    typeof charge.payment_intent === "string" ? charge.payment_intent : null;
+  const invoiceId =
+    typeof (charge as unknown as { invoice?: string }).invoice === "string"
+      ? (charge as unknown as { invoice?: string }).invoice ?? null
+      : null;
+  const n = await reverseCommissionsForCharge({ paymentIntentId, invoiceId });
+  if (n > 0) console.log(`charge.refunded: reversed ${n} commission(s)`);
 }
 
 async function rateForAffiliate(affiliateUserId: string): Promise<number> {
