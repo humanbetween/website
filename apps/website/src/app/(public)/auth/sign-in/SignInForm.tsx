@@ -9,7 +9,12 @@ import { authClient } from "@/lib/auth-client";
 export function SignInForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const redirectTo = params.get("redirect") ?? "/";
+  // Same-origin relative paths only — never an absolute/off-site URL.
+  const rawRedirect = params.get("redirect") ?? "/";
+  const redirectTo =
+    rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : "/";
 
   const [mode, setMode] = useState<"password" | "magic">("password");
   const [email, setEmail] = useState("");

@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import { resolveAffiliate } from "@/lib/affiliate";
+import { resolveActiveAffiliate } from "@/lib/affiliate";
 import { db, schema } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -27,7 +27,7 @@ export async function PATCH(request: Request) {
   if (!session) {
     return NextResponse.json({ error: "Sign in first" }, { status: 401 });
   }
-  const affiliate = await resolveAffiliate(session.user.id);
+  const affiliate = await resolveActiveAffiliate(session.user.id);
   if (!affiliate) {
     return NextResponse.json({ error: "Not a creator" }, { status: 403 });
   }

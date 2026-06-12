@@ -11,6 +11,14 @@ export const supportEmail =
 // like the magic-link footer — never localhost or a preview URL.
 const SITE = "https://humanprompts.ai";
 
+// Escape user-supplied text before it goes into email HTML.
+const esc = (s: string) =>
+  s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
 export async function sendMagicLinkEmail({
   to,
   url,
@@ -137,7 +145,7 @@ export async function sendSubmissionReceivedEmail({
     html: brandEmailShell({
       eyebrow: "Submission received",
       heading: "It's under review \u{1F440}",
-      bodyHtml: `Thanks for submitting <strong style="color:#fafaf9">${title}</strong>. We'll review it shortly and email you as soon as it's live — or with notes if it needs a tweak.`,
+      bodyHtml: `Thanks for submitting <strong style="color:#fafaf9">${esc(title)}</strong>. We'll review it shortly and email you as soon as it's live — or with notes if it needs a tweak.`,
       ctaLabel: "View your projects →",
       ctaUrl: `${SITE}/creator`,
     }),
@@ -165,7 +173,7 @@ export async function sendSubmissionApprovedEmail({
     html: brandEmailShell({
       eyebrow: "Approved",
       heading: "You're live \u{1F389}",
-      bodyHtml: `<strong style="color:#fafaf9">${title}</strong> was approved and is now in the library. Share your referral link to earn on every sale it drives.`,
+      bodyHtml: `<strong style="color:#fafaf9">${esc(title)}</strong> was approved and is now in the library. Share your referral link to earn on every sale it drives.`,
       ctaLabel: "View it live →",
       ctaUrl: url,
       secondaryHtml: `Grab your referral link on your <a href="${SITE}/creator" style="color:#78716c;text-decoration:underline">creator dashboard</a>.`,
@@ -194,7 +202,7 @@ export async function sendSubmissionRejectedEmail({
     html: brandEmailShell({
       eyebrow: "Changes requested",
       heading: "Almost there",
-      bodyHtml: `Thanks for submitting <strong style="color:#fafaf9">${title}</strong>. Before it goes live, we'd like a tweak:<br><br><span style="color:#d6d3d1">${notes}</span>`,
+      bodyHtml: `Thanks for submitting <strong style="color:#fafaf9">${esc(title)}</strong>. Before it goes live, we'd like a tweak:<br><br><span style="color:#d6d3d1">${esc(notes)}</span>`,
       ctaLabel: "Edit & resubmit →",
       ctaUrl: `${SITE}/creator`,
     }),
@@ -288,8 +296,8 @@ function contactInquiryHtml({
   <table align="center" style="max-width:520px;margin:0 auto;background:#2a2724;border-radius:12px;padding:32px">
     <tr><td>
       <p style="color:#78716c;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 16px">New inquiry</p>
-      <p style="margin:0 0 4px"><strong>${name}</strong></p>
-      <p style="margin:0 0 24px"><a href="mailto:${email}" style="color:#a8a29e">${email}</a></p>
+      <p style="margin:0 0 4px"><strong>${esc(name)}</strong></p>
+      <p style="margin:0 0 24px"><a href="mailto:${encodeURIComponent(email)}" style="color:#a8a29e">${esc(email)}</a></p>
       <div style="background:#1c1916;border-radius:8px;padding:16px;color:#e7e5e4;font-size:14px;line-height:1.6">${safeMessage}</div>
       <p style="color:#78716c;margin:24px 0 0;font-size:11px">Reply directly to this email to respond.</p>
     </td></tr>

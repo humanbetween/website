@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { resolveAffiliate } from "@/lib/affiliate";
+import { resolveActiveAffiliate } from "@/lib/affiliate";
 import { creatorSubmitSchema } from "@/lib/prompts/schema";
 import { createSubmission } from "@/lib/submissions";
 import { sendSubmissionReceivedEmail } from "@/lib/resend";
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   if (!session) {
     return NextResponse.json({ error: "Sign in first" }, { status: 401 });
   }
-  const affiliate = await resolveAffiliate(session.user.id);
+  const affiliate = await resolveActiveAffiliate(session.user.id);
   if (!affiliate) {
     return NextResponse.json({ error: "Not a creator" }, { status: 403 });
   }

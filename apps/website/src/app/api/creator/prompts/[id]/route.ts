@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
-import { resolveAffiliate } from "@/lib/affiliate";
+import { resolveActiveAffiliate } from "@/lib/affiliate";
 import { creatorPatchSchema } from "@/lib/prompts/schema";
 import { deleteOwnSubmission, updateOwnSubmission } from "@/lib/submissions";
 
@@ -13,7 +13,7 @@ const idSchema = z.string().uuid();
 async function gate() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return null;
-  const affiliate = await resolveAffiliate(session.user.id);
+  const affiliate = await resolveActiveAffiliate(session.user.id);
   if (!affiliate) return null;
   return session;
 }

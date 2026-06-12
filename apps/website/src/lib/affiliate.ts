@@ -51,6 +51,15 @@ export async function resolveAffiliate(
   return rows[0] ?? null;
 }
 
+// Like resolveAffiliate but only returns the account when it's active — used to
+// gate creator write actions (a suspended creator keeps read-only dashboard).
+export async function resolveActiveAffiliate(
+  userId: string,
+): Promise<AffiliateAccount | null> {
+  const a = await resolveAffiliate(userId);
+  return a && a.status === "active" ? a : null;
+}
+
 export async function resolveAffiliateByCode(
   code: string,
 ): Promise<AffiliateAccount | null> {

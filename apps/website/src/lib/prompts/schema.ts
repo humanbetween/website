@@ -33,7 +33,13 @@ export const promptFormSchema = z.object({
   isPublished: z.boolean(),
   hasAudio: z.boolean(),
   manualCreatorName: z.string().max(120).nullable(),
-  manualCreatorAvatarUrl: z.string().max(500).nullable(),
+  manualCreatorAvatarUrl: z
+    .string()
+    .max(500)
+    .refine((v) => v === "" || /^https?:\/\//i.test(v), {
+      message: "Avatar must be a URL",
+    })
+    .nullable(),
   assets: z.array(assetSchema),
   categories: z.array(categoryKey).min(1).max(10),
   tags: z.array(z.string().max(40)).max(20),
@@ -60,7 +66,14 @@ export const creatorPatchSchema = creatorSubmitSchema.partial();
 
 export const uploadUrlSchema = z.object({
   kind: z.enum(["video", "asset"]),
-  contentType: z.string().min(3).max(120),
+  // Only real media — never text/html etc. served from the media domain.
+  contentType: z
+    .string()
+    .min(3)
+    .max(120)
+    .refine((v) => /^(image|video)\//i.test(v), {
+      message: "Only image/* or video/* uploads are allowed",
+    }),
   size: z.number().int().min(1).max(100 * 1024 * 1024),
   filename: z.string().min(1).max(200),
 });

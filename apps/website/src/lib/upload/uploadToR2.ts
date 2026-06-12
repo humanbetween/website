@@ -38,7 +38,7 @@ export async function uploadToR2(
   }
 
   const kind = presignKindFor(processed.type);
-  const presignRes = await fetch("/api/admin/upload-url", {
+  const presignRes = await fetch("/api/upload-url", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

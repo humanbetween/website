@@ -55,6 +55,16 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
   },
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 60,
+    customRules: {
+      "/sign-in/email": { window: 60, max: 10 },
+      "/sign-up/email": { window: 60, max: 10 },
+      "/sign-in/magic-link": { window: 60, max: 5 },
+    },
+  },
 });
 
 export type Session = typeof auth.$Infer.Session;
