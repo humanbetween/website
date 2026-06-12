@@ -116,10 +116,10 @@ export async function sendCreatorWelcomeEmail({
     html: brandEmailShell({
       eyebrow: "Creator program",
       heading: "You're in — start earning \u{1F680}",
-      bodyHtml: `Your referral code is <strong style="color:#fafaf9">${code}</strong>. Share your link and earn <strong style="color:#fafaf9">10% on every sale</strong> you bring in. Commissions land in your creator dashboard.`,
-      ctaLabel: "Copy your link →",
-      ctaUrl: link,
-      secondaryHtml: `Track referrals and earnings on your <a href="${SITE}/creator" style="color:#78716c;text-decoration:underline">creator dashboard</a>.`,
+      bodyHtml: `Share this link and earn <strong style="color:#fafaf9">10% on every sale</strong> you bring in:<br><br><span style="display:inline-block;background:#1c1916;border:1px solid #44403c;border-radius:8px;padding:10px 12px;color:#fafaf9;font-family:monospace;font-size:13px;word-break:break-all">${esc(link)}</span><br><br>Anyone who buys after clicking it is credited to you. Commissions land in your creator dashboard.`,
+      ctaLabel: "Open your dashboard →",
+      ctaUrl: `${SITE}/creator`,
+      secondaryHtml: `You can copy your link anytime from your <a href="${SITE}/creator" style="color:#78716c;text-decoration:underline">creator dashboard</a>.`,
     }),
   });
   if (error) throw new Error(`creator welcome email: ${error.message}`);
