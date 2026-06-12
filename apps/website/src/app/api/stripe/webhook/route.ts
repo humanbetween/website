@@ -328,9 +328,11 @@ async function handleInvoicePaid(invoice: Stripe.Invoice) {
   }).catch((err) => console.error("recordSubscriptionCommission failed", err));
 }
 
-// Connect account onboarding/verification status → flip payoutsEnabled.
+// Connect account onboarding/verification status → flip payoutsEnabled. Our
+// creators are transfers-only recipients (no card_payments), so charges_enabled
+// stays false — gate on payouts_enabled (they can receive money to their bank).
 async function handleConnectAccountUpdated(account: Stripe.Account) {
-  const enabled = !!account.charges_enabled && !!account.payouts_enabled;
+  const enabled = !!account.payouts_enabled;
   await db
     .update(schema.affiliateAccounts)
     .set({ payoutsEnabled: enabled, updatedAt: new Date() })
