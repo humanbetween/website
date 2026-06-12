@@ -29,6 +29,7 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false,
     minPasswordLength: 8,
+    autoSignIn: true,
   },
   plugins: [
     magicLink({
