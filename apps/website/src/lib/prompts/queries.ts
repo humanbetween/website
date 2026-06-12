@@ -7,7 +7,7 @@ const PAGE_SIZE = 24;
 
 type Cursor =
   | { key: "popular"; popularity: number; createdAt: string; id: string }
-  | { key: "recent"; createdAt: string; id: string };
+  | { key: "recent"; displayOrder: number; createdAt: string; id: string };
 
 function encodeCursor(c: Cursor) {
   return Buffer.from(JSON.stringify(c)).toString("base64url");
@@ -93,26 +93,56 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
     );
   }
 
+  // Keyset pagination MUST mirror the ORDER BY columns, with id as a final
+  // tiebreaker, or pages overlap/skip and the grid stops early.
   if (cursor) {
     if (cursor.key === "popular" && sort === "popular") {
+      const created = new Date(cursor.createdAt);
       wheres.push(
         or(
           lt(schema.prompts.popularityCount, cursor.popularity),
           and(
             eq(schema.prompts.popularityCount, cursor.popularity),
-            lt(schema.prompts.createdAt, new Date(cursor.createdAt)),
+            lt(schema.prompts.createdAt, created),
+          )!,
+          and(
+            eq(schema.prompts.popularityCount, cursor.popularity),
+            eq(schema.prompts.createdAt, created),
+            gt(schema.prompts.id, cursor.id),
           )!,
         )!,
       );
     } else if (cursor.key === "recent" && sort === "recent") {
-      wheres.push(lt(schema.prompts.createdAt, new Date(cursor.createdAt)));
+      const created = new Date(cursor.createdAt);
+      wheres.push(
+        or(
+          gt(schema.prompts.displayOrder, cursor.displayOrder),
+          and(
+            eq(schema.prompts.displayOrder, cursor.displayOrder),
+            lt(schema.prompts.createdAt, created),
+          )!,
+          and(
+            eq(schema.prompts.displayOrder, cursor.displayOrder),
+            eq(schema.prompts.createdAt, created),
+            gt(schema.prompts.id, cursor.id),
+          )!,
+        )!,
+      );
     }
   }
 
   const order =
     sort === "popular"
-      ? [desc(schema.prompts.popularityCount), desc(schema.prompts.createdAt)]
-      : [asc(schema.prompts.displayOrder), desc(schema.prompts.createdAt)];
+      ? [
+          desc(schema.prompts.popularityCount),
+          desc(schema.prompts.createdAt),
+          asc(schema.prompts.id),
+        ]
+      : [
+          asc(schema.prompts.displayOrder),
+          desc(schema.prompts.createdAt),
+          asc(schema.prompts.id),
+        ];
 
   const rows = await db
     .select()
@@ -136,6 +166,7 @@ export async function listPrompts(args: ListPromptsArgs): Promise<PromptListResp
           })
         : encodeCursor({
             key: "recent",
+            displayOrder: last.displayOrder,
             createdAt: last.createdAt.toISOString(),
             id: last.id,
           })
