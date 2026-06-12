@@ -11,6 +11,7 @@ import {
   Share2,
   Link as LinkIcon,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -171,7 +172,7 @@ export function PromptDialog({
       <DialogContent
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
-        className="max-w-[920px] w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] p-0 overflow-hidden bg-card border-border/60 flex flex-col [&>button]:hidden"
+        className="max-w-[920px] w-[calc(100vw-2.5rem)] sm:w-[calc(100vw-2rem)] max-h-[84vh] sm:max-h-[calc(100vh-2rem)] p-0 overflow-hidden bg-card border-border/60 flex flex-col [&>button]:hidden"
       >
         <header className="flex items-center justify-between px-5 py-4 border-b border-border/40 gap-3 shrink-0">
           <div className="min-w-0">
@@ -266,7 +267,7 @@ export function PromptDialog({
         </header>
 
         <div className="flex-1 min-h-0 overflow-y-auto">
-          <div className="relative h-[50vh] sm:h-[70vh] overflow-hidden bg-black">
+          <div className="relative h-[42vh] sm:h-[70vh] overflow-hidden bg-black">
             <AutoPlayMedia
               src={prompt.videoUrl}
               poster={prompt.thumbnailUrl}
@@ -276,6 +277,33 @@ export function PromptDialog({
               startUnmuted={detail?.hasAudio ?? prompt.hasAudio}
               className="h-full"
             />
+            {/* Mobile-only prev/next arrows (desktop uses arrow keys + swipe). */}
+            {onPrev && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPrev();
+                }}
+                aria-label="Previous"
+                className="sm:hidden absolute left-2 top-1/2 -translate-y-1/2 h-9 w-9 inline-flex items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm active:bg-black/70"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+            )}
+            {onNext && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNext();
+                }}
+                aria-label="Next"
+                className="sm:hidden absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9 inline-flex items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm active:bg-black/70"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            )}
             {prompt.referenceImageUrl && (
               <div
                 className="absolute bottom-3 left-3 h-24 w-24 sm:h-[120px] sm:w-[120px] rounded-xl overflow-hidden border border-white/30 shadow-xl bg-black/40 backdrop-blur-sm"
